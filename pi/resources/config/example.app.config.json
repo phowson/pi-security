@@ -1,0 +1,9 @@
+{
+	"firebaseConfig": {
+		"databaseURL": "https://pisecurity-72796.firebaseio.com",
+		"firebaseConfigFile" : "./resources/config/test-firebase-config.json"
+	}
+	
+	
+	
+}
