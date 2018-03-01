@@ -18,6 +18,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<jetty.version>9.4.7.v20170914</jetty.version>
 		<unirest.version>1.4.9</unirest.version>
+		<firebase.version>5.9.0</firebase.version>
 	</properties>
 
 

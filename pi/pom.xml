@@ -19,6 +19,14 @@
 	</properties>
 
 	<dependencies>
+
+
+		<dependency>
+			<groupId>com.google.firebase</groupId>
+			<artifactId>firebase-admin</artifactId>
+			<version>${firebase.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>com.pi4j</groupId>
 			<artifactId>pi4j-core</artifactId>
@@ -36,15 +44,15 @@
 			<artifactId>pi4j-service</artifactId>
 			<version>${pi4j.version}</version>
 		</dependency>
-		
+
 
 		<dependency>
 			<groupId>com.pi4j</groupId>
 			<artifactId>pi4j-gpio-extension</artifactId>
 			<version>${pi4j.version}</version>
-		</dependency>		
-		
-		
+		</dependency>
+
+
 		<dependency>
 			<groupId>net.pisecurity</groupId>
 			<artifactId>pisecurity-common</artifactId>

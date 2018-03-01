@@ -26,6 +26,13 @@
 
 
 	<dependencies>
+
+		<dependency>
+			<groupId>com.google.firebase</groupId>
+			<artifactId>firebase-admin</artifactId>
+			<version>${firebase.version}</version>
+		</dependency>
+
 		<dependency>
 			<groupId>net.pisecurity</groupId>
 			<artifactId>pisecurity-common</artifactId>
@@ -62,7 +69,7 @@
 			<version>9.2.12.M0</version>
 		</dependency>
 
-	
+
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
