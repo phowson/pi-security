@@ -14,14 +14,45 @@
 	<name>pisecurity-pi</name>
 	<url>http://phil.howson.net</url>
 
-
+	<properties>
+		<pi4j.version>1.1</pi4j.version>
+	</properties>
 
 	<dependencies>
+		<dependency>
+			<groupId>com.pi4j</groupId>
+			<artifactId>pi4j-core</artifactId>
+			<version>${pi4j.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.pi4j</groupId>
+			<artifactId>pi4j-device</artifactId>
+			<version>${pi4j.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.pi4j</groupId>
+			<artifactId>pi4j-service</artifactId>
+			<version>${pi4j.version}</version>
+		</dependency>
+		
+
+		<dependency>
+			<groupId>com.pi4j</groupId>
+			<artifactId>pi4j-gpio-extension</artifactId>
+			<version>${pi4j.version}</version>
+		</dependency>		
+		
+		
 		<dependency>
 			<groupId>net.pisecurity</groupId>
 			<artifactId>pisecurity-common</artifactId>
 			<version>${my.version}</version>
 		</dependency>
+
+
+
 
 		<dependency>
 			<groupId>net.sf.trove4j</groupId>
