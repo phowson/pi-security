@@ -1,7 +1,10 @@
 {
+	
+	
+	"locationId" : "test-1",
 	"firebaseConfig": {
 		"databaseURL": "https://pisecurity-72796.firebaseio.com",
-		"firebaseConfigFile" : "./resources/config/test-firebase-config.json"
+		"firebaseConfigFile" : "./resources/config/example-firebase-config.json"
 	}
 	
 	
