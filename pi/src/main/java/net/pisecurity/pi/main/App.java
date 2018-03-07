@@ -27,6 +27,8 @@ import com.google.gson.GsonBuilder;
 import net.pisecurity.example.ExampleConfigFactory;
 import net.pisecurity.model.AlarmBellConfig;
 import net.pisecurity.model.AutoArmConfig;
+import net.pisecurity.model.Event;
+import net.pisecurity.model.EventType;
 import net.pisecurity.model.Heartbeat;
 import net.pisecurity.model.MonitoringConfig;
 import net.pisecurity.pi.autoarm.AutoArmController;
@@ -107,7 +109,11 @@ public class App implements UncaughtExceptionHandler, Runnable {
 			logger.info("No configuration was seen in firebase, so defaulting to an example config and inserting");
 			saveConfig(monitoringConfigRef, config);
 		} else {
+
+			eventListener.onEvent(new Event(System.currentTimeMillis(), -1, "Monitoring reconfigured",
+					EventType.CONFIG_CHANGED, "Monitoring reconfigured"));
 			configureMonitoring(config);
+
 		}
 	}
 
@@ -170,6 +176,9 @@ public class App implements UncaughtExceptionHandler, Runnable {
 		if (config == null) {
 			config = ExampleConfigFactory.createAutoArmConfig();
 			saveConfig(autoArmConfigRef, config);
+			eventListener.onEvent(new Event(System.currentTimeMillis(), -1, "Auto arm reconfigured",
+					EventType.CONFIG_CHANGED, "Auto arm reconfigured"));
+
 		} else {
 			this.autoArmController.configure(config);
 		}
@@ -181,6 +190,10 @@ public class App implements UncaughtExceptionHandler, Runnable {
 			config = ExampleConfigFactory.createAlarmBellConfig();
 			saveConfig(alarmBellConfigRef, config);
 		} else {
+
+			eventListener.onEvent(new Event(System.currentTimeMillis(), -1, "Alarm bell reconfigured",
+					EventType.CONFIG_CHANGED, "Alarm bell reconfigured"));
+
 			this.alarmBellController.configure(config, mainExecutor);
 		}
 	}
@@ -310,6 +323,18 @@ public class App implements UncaughtExceptionHandler, Runnable {
 
 		mainExecutor.scheduleWithFixedDelay(this, this.appConfig.heartBeatIntervalMillis,
 				this.appConfig.heartBeatIntervalMillis, TimeUnit.MILLISECONDS);
+
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				eventListener
+						.onEvent(new Event(System.currentTimeMillis(), -1, "System shutdown", EventType.SYSTEM_SHUTDOWN,
+								"System orderly shutdown at timestamp : " + System.currentTimeMillis()));
+			}
+		});
+
+		eventListener.onEvent(new Event(System.currentTimeMillis(), -1, "System start", EventType.SYSTEM_START,
+				"System startup at timestamp : " + System.currentTimeMillis()));
 
 	}
 

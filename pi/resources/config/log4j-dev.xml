@@ -29,8 +29,8 @@
 
 
 		<RollingFile name="EventsFile"
-			filePattern="events/%d{yyyy}/%d{MM}/events.%d{yyyy-MM-dd}.log.gz"
-
+		fileName="events/events.log"
+			filePattern="events/events.%d{yyyy-MM-dd}.log.gz"
 			ignoreExceptions="true">
 			<Filters>
 				<Filter type="ThresholdFilter" level="INFO" onMatch="ACCEPT"
@@ -41,7 +41,7 @@
 			</PatternLayout>
 			<Policies>
 				<TimeBasedTriggeringPolicy />
-				<SizeBasedTriggeringPolicy size="250 MB" />
+
 			</Policies>
 			<DefaultRolloverStrategy max="20" />
 		</RollingFile>
@@ -55,7 +55,8 @@
 			<AppenderRef ref="STDOUT" />
 			<AppenderRef ref="File" />
 		</AsyncLogger>
-		<AsyncLogger name='Events' level="info" includeLocation="true">
+		<AsyncLogger name='EventMessages' level="info"
+			includeLocation="true">
 			<AppenderRef ref="EventsFile" />
 		</AsyncLogger>
 	</Loggers>

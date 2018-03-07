@@ -1,18 +1,18 @@
 package net.pisecurity.pi.persist;
 
-import java.util.logging.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import net.pisecurity.model.Event;
 import net.pisecurity.pi.monitoring.EventListener;
 
 public class PersistingEventListener implements EventListener {
 
-	private static Logger eventLogger = Logger.getLogger("Events");
-	
+	private static final org.apache.logging.log4j.Logger eventLogger = LogManager.getLogger("EventMessages");
+
 	private PersistenceService persistenceService;
 
 	public PersistingEventListener(PersistenceService persistenceService) {
-		this.persistenceService = persistenceService;
+		this.persistenceService = persistenceService; 
 	}
 
 	@Override

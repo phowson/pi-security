@@ -44,7 +44,7 @@ public class AutoArmController implements Runnable {
 		this.alertState = alertState;
 		this.eventListener = eventListener;
 		this.internetStatus = internetStatus;
-
+		devicesLastSeenAt = System.currentTimeMillis();
 	}
 
 	public void configure(AutoArmConfig config) {
@@ -104,8 +104,9 @@ public class AutoArmController implements Runnable {
 			if (d > config.autoArmDelaySeconds * 1000 && config.autoArmDisarm && internetStatus.isConnected()) {
 				// Potentially an arm event
 
-				if (isMonitoringPeriod(now) && now
-						- lastMonitoringPeriodStart(now).toInstant().toEpochMilli() > config.autoArmDelaySeconds*1000) {
+				if (isMonitoringPeriod(now)
+						&& now - lastMonitoringPeriodStart(now).toInstant().toEpochMilli() > config.autoArmDelaySeconds
+								* 1000) {
 					autoArm(d);
 				}
 
@@ -123,6 +124,7 @@ public class AutoArmController implements Runnable {
 				public void run() {
 
 					if (alertState.armed) {
+						logger.info("Automatically disarming due to device : " + deviceName);
 						alertState.armed = false;
 						eventListener.onEvent(new Event(System.currentTimeMillis(), -1, "System automatically disarmed",
 								EventType.SYSTEM_AUTO_ARMED, "Disarmed, device " + deviceName + " seen"));
@@ -168,7 +170,9 @@ public class AutoArmController implements Runnable {
 				public void run() {
 
 					if (!alertState.armed) {
+						logger.info("Automatically arming system due to no devices seen for : " + d + " ms");
 						alertState.armed = true;
+
 						eventListener.onEvent(new Event(System.currentTimeMillis(), -1, "System automatically armed",
 								EventType.SYSTEM_AUTO_ARMED,
 								"Armed due to no devices being seen for " + d / 1000 + " seconds"));
