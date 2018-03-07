@@ -13,4 +13,12 @@ public class AutoArmConfig {
 	public int autoArmEndHour;
 	public int autoArmEndMinute;
 
+	@Override
+	public String toString() {
+		return "AutoArmConfig [autoArmDelaySeconds=" + autoArmDelaySeconds + ", mobileDevicesToTrack="
+				+ mobileDevicesToTrack + ", autoArmDisarm=" + autoArmDisarm + ", autoArmTimeZone=" + autoArmTimeZone
+				+ ", autoArmStartHour=" + autoArmStartHour + ", autoArmStartMinute=" + autoArmStartMinute
+				+ ", autoArmEndHour=" + autoArmEndHour + ", autoArmEndMinute=" + autoArmEndMinute + "]";
+	}
+
 }

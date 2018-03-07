@@ -1,6 +1,7 @@
 package net.pisecurity.example;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import net.pisecurity.model.AlarmBellConfig;
 import net.pisecurity.model.AutoArmConfig;
@@ -58,7 +59,7 @@ public class ExampleConfigFactory {
 
 	public static AlarmBellConfig createAlarmBellConfig() {
 		AlarmBellConfig config = new AlarmBellConfig();
-		config.outputPins = new int[] { 5 };
+		config.outputPins = Arrays.asList(new Integer[] { new Integer(5) });
 		config.maxActivationTimeSeconds = 600;
 
 		return config;

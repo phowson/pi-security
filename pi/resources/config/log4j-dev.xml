@@ -6,9 +6,13 @@
 	</Properties>
 	<Appenders>
 
-		<!-- <Appender type="Console" name="STDOUT"> <Filters> <Filter type="ThresholdFilter" 
-			level="INFO" onMatch="ACCEPT" onMismatch="DENY" /> </Filters> <Layout type="PatternLayout" 
-			pattern="%d [%-6p] %t – %m - %C{1}.%M(%F:%L)%n" /> </Appender> -->
+		<Appender type="Console" name="STDOUT">
+			<Filters>
+				<Filter type="ThresholdFilter" level="INFO" onMatch="ACCEPT"
+					onMismatch="DENY" />
+			</Filters>
+			<Layout type="PatternLayout" pattern="%d [%-6p] %t – %m - %C{1}.%M(%F:%L)%n" />
+		</Appender>
 
 		<RollingFile name="File" fileName="${log4jlogfilename}"
 			filePattern="${log4jlogfilename}.%d{yyyy-MM-dd}.log.gz"

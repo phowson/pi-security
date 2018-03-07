@@ -31,10 +31,11 @@ import net.pisecurity.model.Heartbeat;
 import net.pisecurity.model.MonitoringConfig;
 import net.pisecurity.pi.autoarm.AutoArmController;
 import net.pisecurity.pi.config.AppConfig;
-import net.pisecurity.pi.monitoring.AlarmBellController;
+import net.pisecurity.pi.monitoring.GPIOAlarmBellController;
 import net.pisecurity.pi.monitoring.AlertState;
 import net.pisecurity.pi.monitoring.EventListener;
 import net.pisecurity.pi.monitoring.GPIOInterface;
+import net.pisecurity.pi.monitoring.AlarmBellController;
 import net.pisecurity.pi.monitoring.IOInterface;
 import net.pisecurity.pi.monitoring.InternetStatus;
 import net.pisecurity.pi.monitoring.MonitoringService;
@@ -66,10 +67,13 @@ public class App implements UncaughtExceptionHandler, Runnable {
 	private ScheduledThreadPoolExecutor pingExecutor;
 	private DatabaseReference autoArmConfigRef;
 	private DatabaseReference alarmBellConfigRef;
+	private DatabaseReference hbRef;
 
-	public App(String configFileName, IOInterface ioInterface) throws FileNotFoundException, IOException {
+	public App(String configFileName, IOInterface ioInterface, AlarmBellController alarmBellController)
+			throws FileNotFoundException, IOException {
 		GsonBuilder builder = new GsonBuilder();
 		Gson gson = builder.create();
+		this.alarmBellController = alarmBellController;
 
 		logger.info("Initialisng from config file : " + configFileName);
 
@@ -86,8 +90,9 @@ public class App implements UncaughtExceptionHandler, Runnable {
 		autoArmConfigRef = locationRef.child("autoArmConfig");
 		alarmBellConfigRef = locationRef.child("alarmBellConfig");
 		eventsRef = locationRef.child("events");
+		hbRef = locationRef.child("heartbeat");
 
-		FirebasePersistenceService persistenceService = new FirebasePersistenceService(database, eventsRef);
+		FirebasePersistenceService persistenceService = new FirebasePersistenceService(database, eventsRef, hbRef);
 		this.internetStatus = persistenceService;
 		this.persistenceService = persistenceService;
 		this.eventListener = new PersistingEventListener(persistenceService);
@@ -128,7 +133,7 @@ public class App implements UncaughtExceptionHandler, Runnable {
 
 	private void configureMonitoring(MonitoringConfig config) {
 
-		if (monitoringService == null) {
+		if (monitoringService != null) {
 			monitoringService.shutdown();
 		}
 
@@ -144,7 +149,7 @@ public class App implements UncaughtExceptionHandler, Runnable {
 
 		if (!configured) {
 			logger.error("No configuration for application ever acquired. Shutting down");
-			System.exit(-1);
+			// System.exit(-1);
 		}
 	}
 
@@ -152,7 +157,7 @@ public class App implements UncaughtExceptionHandler, Runnable {
 
 		String configFileName = args[0];
 
-		new App(configFileName, new GPIOInterface()).start();
+		new App(configFileName, new GPIOInterface(), new GPIOAlarmBellController()).start();
 
 	}
 
@@ -176,7 +181,7 @@ public class App implements UncaughtExceptionHandler, Runnable {
 			config = ExampleConfigFactory.createAlarmBellConfig();
 			saveConfig(alarmBellConfigRef, config);
 		} else {
-			this.alarmBellController.configure(config);
+			this.alarmBellController.configure(config, mainExecutor);
 		}
 	}
 
@@ -190,7 +195,6 @@ public class App implements UncaughtExceptionHandler, Runnable {
 		pingExecutor = new ScheduledThreadPoolExecutor(1, new NamedThreadFactory("PingExecutor", this, false));
 
 		mainExecutor.execute(DoNothingRunnable.INSTANCE);
-		this.alarmBellController = new AlarmBellController(mainExecutor);
 
 		this.autoArmController = new AutoArmController(this.internetStatus, mainExecutor, pingExecutor, alertState,
 				eventListener);

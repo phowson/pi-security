@@ -45,10 +45,6 @@ public class AutoArmController implements Runnable {
 		this.eventListener = eventListener;
 		this.internetStatus = internetStatus;
 
-		zone = ZoneId.of(config.autoArmTimeZone);
-
-		future = this.pingExecutor.scheduleWithFixedDelay(this, PING_CHECK_INTERVAL, PING_CHECK_INTERVAL,
-				TimeUnit.MILLISECONDS);
 	}
 
 	public void configure(AutoArmConfig config) {
@@ -56,8 +52,18 @@ public class AutoArmController implements Runnable {
 
 			@Override
 			public void run() {
+				if (future != null) {
+					logger.info("Shutting down old job");
+					future.cancel(true);
+				}
+
 				AutoArmController.this.config = config;
 
+				zone = ZoneId.of(config.autoArmTimeZone);
+
+				future = pingExecutor.scheduleWithFixedDelay(AutoArmController.this, PING_CHECK_INTERVAL,
+						PING_CHECK_INTERVAL, TimeUnit.MILLISECONDS);
+				logger.info("Auto arm controller configured. config = " + config);
 			}
 
 		});
@@ -70,8 +76,8 @@ public class AutoArmController implements Runnable {
 
 	@Override
 	public void run() {
-		
-		if (this.config==null) {
+
+		if (this.config == null) {
 			return;
 		}
 		try {
@@ -79,6 +85,11 @@ public class AutoArmController implements Runnable {
 				InetAddress addr = InetAddress.getByName(mdc.mobileDeviceAddress);
 
 				if (addr.isReachable(PING_TIMEOUT_MILLIS)) {
+
+					if (logger.isDebugEnabled()) {
+						logger.debug("Saw device : " + addr);
+					}
+
 					long now = System.currentTimeMillis();
 					devicesLastSeenAt = now;
 					if (config.autoArmDisarm) {
@@ -94,7 +105,7 @@ public class AutoArmController implements Runnable {
 				// Potentially an arm event
 
 				if (isMonitoringPeriod(now) && now
-						- lastMonitoringPeriodStart(now).toInstant().toEpochMilli() > config.autoArmDelaySeconds) {
+						- lastMonitoringPeriodStart(now).toInstant().toEpochMilli() > config.autoArmDelaySeconds*1000) {
 					autoArm(d);
 				}
 

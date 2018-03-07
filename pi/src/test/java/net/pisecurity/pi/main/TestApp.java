@@ -8,7 +8,7 @@ public class TestApp {
 	public static void main(String[] args) throws FileNotFoundException, IOException {
 		String configFileName = args[0];
 
-		new App(configFileName, new DoNothingIOInterface()).start();
+		new App(configFileName, new DoNothingIOInterface(), new DoNothingAlarmBellController()).start();
 	}
 
 }
