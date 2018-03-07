@@ -3,6 +3,7 @@ package net.pisecurity.model;
 public class MonitoredPinConfig {
 	public int gpioPin;
 	public String label;
+	public SensorType type;
 	public boolean raisesAlert;
 	public boolean reportingEnabled;
 	public boolean raiseImmediately;

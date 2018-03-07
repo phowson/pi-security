@@ -6,13 +6,9 @@
 	</Properties>
 	<Appenders>
 
-		<Appender type="Console" name="STDOUT">
-			<Filters>
-				<Filter type="ThresholdFilter" level="INFO" onMatch="ACCEPT"
-					onMismatch="DENY" />
-			</Filters>
-			<Layout type="PatternLayout" pattern="%d [%-6p] %t – %m - %C{1}.%M(%F:%L)%n" />
-		</Appender>
+		<!-- <Appender type="Console" name="STDOUT"> <Filters> <Filter type="ThresholdFilter" 
+			level="INFO" onMatch="ACCEPT" onMismatch="DENY" /> </Filters> <Layout type="PatternLayout" 
+			pattern="%d [%-6p] %t – %m - %C{1}.%M(%F:%L)%n" /> </Appender> -->
 
 		<RollingFile name="File" fileName="${log4jlogfilename}"
 			filePattern="${log4jlogfilename}.%d{yyyy-MM-dd}.log.gz"
@@ -26,6 +22,27 @@
 			</PatternLayout>
 			<TimeBasedTriggeringPolicy />
 		</RollingFile>
+
+
+		<RollingFile name="EventsFile"
+			filePattern="events/%d{yyyy}/%d{MM}/events.%d{yyyy-MM-dd}.log.gz"
+
+			ignoreExceptions="true">
+			<Filters>
+				<Filter type="ThresholdFilter" level="INFO" onMatch="ACCEPT"
+					onMismatch="DENY" />
+			</Filters>
+			<PatternLayout>
+				<Pattern>%d,%m%n</Pattern>
+			</PatternLayout>
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="250 MB" />
+			</Policies>
+			<DefaultRolloverStrategy max="20" />
+		</RollingFile>
+
+
 	</Appenders>
 
 	<Loggers>
@@ -34,7 +51,9 @@
 			<AppenderRef ref="STDOUT" />
 			<AppenderRef ref="File" />
 		</AsyncLogger>
-
+		<AsyncLogger name='Events' level="info" includeLocation="true">
+			<AppenderRef ref="EventsFile" />
+		</AsyncLogger>
 	</Loggers>
 
 </Configuration>
