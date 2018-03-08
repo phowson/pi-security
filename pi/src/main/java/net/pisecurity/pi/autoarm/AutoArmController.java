@@ -171,6 +171,7 @@ public class AutoArmController implements Runnable {
 
 					if (!alertState.armed) {
 						logger.info("Automatically arming system due to no devices seen for : " + d + " ms");
+						alertState.firstActivityTs = 0;
 						alertState.armed = true;
 
 						eventListener.onEvent(new Event(System.currentTimeMillis(), -1, "System automatically armed",

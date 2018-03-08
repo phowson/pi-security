@@ -73,6 +73,7 @@ public class App implements UncaughtExceptionHandler, Runnable {
 
 	public App(String configFileName, IOInterface ioInterface, AlarmBellController alarmBellController)
 			throws FileNotFoundException, IOException {
+		this.ioInterface = ioInterface;
 		GsonBuilder builder = new GsonBuilder();
 		Gson gson = builder.create();
 		this.alarmBellController = alarmBellController;

@@ -51,8 +51,8 @@ public class MonitoringService implements IOActivityListener {
 			}
 
 		}
-
 	}
+
 
 	@Override
 	public void onActivity(int pin) {
@@ -63,6 +63,7 @@ public class MonitoringService implements IOActivityListener {
 			this.eventListener
 					.onEvent(new Event(now, pin, cfg.label, EventType.ACTIVITY, "Activity detected on pin " + pin));
 
+			
 			mainExecutor.execute(new Runnable() {
 
 				@Override
@@ -84,7 +85,7 @@ public class MonitoringService implements IOActivityListener {
 			if (alertState.firstActivityTs == 0) {
 				alertState.firstActivityTs = now;
 			}
-
+			logger.info("Will re-check for activity in " + config.alarmDelaySeconds + " seconds");
 			mainExecutor.schedule(new Runnable() {
 
 				@Override
