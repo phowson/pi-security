@@ -11,6 +11,7 @@ import net.pisecurity.model.Event;
 import net.pisecurity.model.EventType;
 import net.pisecurity.model.MonitoredPinConfig;
 import net.pisecurity.model.MonitoringConfig;
+import net.pisecurity.model.SensorType;
 
 public class MonitoringService implements IOActivityListener {
 	private static final Logger logger = LogManager.getLogger(MonitoringService.class);
@@ -53,7 +54,6 @@ public class MonitoringService implements IOActivityListener {
 		}
 	}
 
-
 	@Override
 	public void onActivity(int pin) {
 
@@ -63,7 +63,6 @@ public class MonitoringService implements IOActivityListener {
 			this.eventListener
 					.onEvent(new Event(now, pin, cfg.label, EventType.ACTIVITY, "Activity detected on pin " + pin));
 
-			
 			mainExecutor.execute(new Runnable() {
 
 				@Override
@@ -81,50 +80,66 @@ public class MonitoringService implements IOActivityListener {
 	}
 
 	protected void doAlarmCheckAndRaise(long now, MonitoredPinConfig cfg, int pin) {
-		if (alertState.armed && !alertState.alarmActive && config.bellEnabled) {
+		if (alertState.armed && !alertState.alarmActive && 
+				// Always auto trigger if no internet
+				(config.autoTriggerAlarm || !internetStatus.isConnected())
+				&& cfg.raisesAlert) {
 			if (alertState.firstActivityTs == 0) {
 				alertState.firstActivityTs = now;
 			}
-			logger.info("Will re-check for activity in " + config.alarmDelaySeconds + " seconds");
-			mainExecutor.schedule(new Runnable() {
 
-				@Override
-				public void run() {
-					recheckAlarmState();
-				}
+			if (cfg.type == SensorType.TAMPER) {
+				logger.info("Tamper triggered, immediate raise");
+				doRaise("Alarm automatically triggered due to tamper");
+			} else if (cfg.raiseImmediately) {
+				logger.info("Raise immediately flag set on this pin, raise straight away");
+				doRaise("Alarm automatically triggered immediately");
+			} else {
 
-			}, config.alarmDelaySeconds, TimeUnit.SECONDS);
+				logger.info("Will re-check for activity in " + config.alarmDelaySeconds + " seconds");
+				mainExecutor.schedule(new Runnable() {
+
+					@Override
+					public void run() {
+						recheckAlarmState();
+					}
+
+				}, config.alarmDelaySeconds, TimeUnit.SECONDS);
+			}
 
 		}
 	}
 
 	protected void recheckAlarmState() {
+		long now = System.currentTimeMillis();
+		long d = now - alertState.firstActivityTs;
+		if (d >= config.alarmDelaySeconds * 1000) {
+			logger.info("Alarm should be triggered, has been " + d + "ms since first activity with no response");
+			doRaise("Alarm automatically triggered after " + d / 1000 + " seconds");
 
+		}
+	}
+
+	private void doRaise(String str) {
 		if (alertState.armed && !alertState.alarmActive) {
 			if (alertState.firstActivityTs != 0) {
 				if (config.bellEnabled) {
-
 					long now = System.currentTimeMillis();
-					long d = now - alertState.firstActivityTs;
-					if (d >= config.alarmDelaySeconds * 1000) {
-						logger.info("Alarm should be triggered, has been " + d
-								+ "ms since first activity with no response");
-						if (config.autoTriggerAlarm || !internetStatus.isConnected()) {
-							alertState.alarmActive = true;
-							alertState.lastAlarmActivation = now;
-							eventListener.onEvent(new Event(now, -1, "Alarm triggered", EventType.ALARMTRIGGERED_AUTO,
-									"Alarm automatically triggered after " + d / 1000 + " seconds"));
 
-							alarmBellController.on();
+					if (config.autoTriggerAlarm || !internetStatus.isConnected()) {
+						alertState.alarmActive = true;
+						alertState.lastAlarmActivation = now;
+						eventListener
+								.onEvent(new Event(now, -1, "Alarm triggered", EventType.ALARMTRIGGERED_AUTO, str));
 
-						}
-
-					} else {
-						logger.info("Not triggering at this time");
+						alarmBellController.on();
 					}
-				}
 
+				} else {
+					logger.info("Not triggering at this time");
+				}
 			}
+
 		}
 	}
 

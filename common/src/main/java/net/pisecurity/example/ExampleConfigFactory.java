@@ -8,6 +8,8 @@ import net.pisecurity.model.AutoArmConfig;
 import net.pisecurity.model.MobileDeviceConfig;
 import net.pisecurity.model.MonitoredPinConfig;
 import net.pisecurity.model.MonitoringConfig;
+import net.pisecurity.model.PinConfig;
+import net.pisecurity.model.RequestedState;
 import net.pisecurity.model.SensorType;
 
 public class ExampleConfigFactory {
@@ -59,10 +61,17 @@ public class ExampleConfigFactory {
 
 	public static AlarmBellConfig createAlarmBellConfig() {
 		AlarmBellConfig config = new AlarmBellConfig();
-		config.outputPins = Arrays.asList(new Integer[] { new Integer(5) });
+		config.outputPins = Arrays.asList(new PinConfig[] { new PinConfig(8, false) });
 		config.maxActivationTimeSeconds = 600;
 
 		return config;
+	}
+
+	public static RequestedState createRequestedState() {
+		RequestedState out = new RequestedState();
+		out.applied = true;
+		out.timestamp = System.currentTimeMillis();
+		return out;
 	}
 
 }

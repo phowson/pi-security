@@ -31,7 +31,9 @@ import net.pisecurity.model.Event;
 import net.pisecurity.model.EventType;
 import net.pisecurity.model.Heartbeat;
 import net.pisecurity.model.MonitoringConfig;
+import net.pisecurity.model.RequestedState;
 import net.pisecurity.pi.autoarm.AutoArmController;
+import net.pisecurity.pi.command.CommandHandler;
 import net.pisecurity.pi.config.AppConfig;
 import net.pisecurity.pi.monitoring.GPIOAlarmBellController;
 import net.pisecurity.pi.monitoring.AlertState;
@@ -70,6 +72,8 @@ public class App implements UncaughtExceptionHandler, Runnable {
 	private DatabaseReference autoArmConfigRef;
 	private DatabaseReference alarmBellConfigRef;
 	private DatabaseReference hbRef;
+	private DatabaseReference commandRef;
+	private CommandHandler commandHandler;
 
 	public App(String configFileName, IOInterface ioInterface, AlarmBellController alarmBellController)
 			throws FileNotFoundException, IOException {
@@ -92,6 +96,8 @@ public class App implements UncaughtExceptionHandler, Runnable {
 		monitoringConfigRef = locationRef.child("monitoringConfig");
 		autoArmConfigRef = locationRef.child("autoArmConfig");
 		alarmBellConfigRef = locationRef.child("alarmBellConfig");
+		commandRef = locationRef.child("command");
+
 		eventsRef = locationRef.child("events");
 		hbRef = locationRef.child("heartbeat");
 
@@ -177,11 +183,11 @@ public class App implements UncaughtExceptionHandler, Runnable {
 		if (config == null) {
 			config = ExampleConfigFactory.createAutoArmConfig();
 			saveConfig(autoArmConfigRef, config);
-			eventListener.onEvent(new Event(System.currentTimeMillis(), -1, "Auto arm reconfigured",
-					EventType.CONFIG_CHANGED, "Auto arm reconfigured"));
 
 		} else {
 			this.autoArmController.configure(config);
+			eventListener.onEvent(new Event(System.currentTimeMillis(), -1, "Auto arm reconfigured",
+					EventType.CONFIG_CHANGED, "Auto arm reconfigured"));
 		}
 	}
 
@@ -203,6 +209,16 @@ public class App implements UncaughtExceptionHandler, Runnable {
 		logger.error("Failed to get alarm bell configuration for : " + appConfig.locationId + ", error = " + error);
 	}
 
+	private void onCommandChange(DataSnapshot snapshot) {
+		RequestedState request = snapshot.getValue(RequestedState.class);
+		if (request == null) {
+			saveConfig(commandRef, ExampleConfigFactory.createRequestedState());
+		} else {
+			commandHandler.onCommand(request);
+		}
+
+	}
+
 	void start() {
 
 		mainExecutor = new ScheduledThreadPoolExecutor(1, new NamedThreadFactory("MainExecutor", this, false));
@@ -212,6 +228,39 @@ public class App implements UncaughtExceptionHandler, Runnable {
 
 		this.autoArmController = new AutoArmController(this.internetStatus, mainExecutor, pingExecutor, alertState,
 				eventListener);
+
+		this.commandHandler = new CommandHandler(commandRef, alertState, mainExecutor, alarmBellController,
+				eventListener, persistenceService);
+
+		commandRef.addValueEventListener(new ValueEventListener() {
+			@Override
+			public void onDataChange(DataSnapshot snapshot) {
+				mainExecutor.execute(new Runnable() {
+
+					@Override
+					public void run() {
+						try {
+							onCommandChange(snapshot);
+						} catch (Exception ex) {
+							logger.error("Unexpected Exception", ex);
+						}
+					}
+
+				});
+			}
+
+			@Override
+			public void onCancelled(DatabaseError error) {
+
+				mainExecutor.execute(new Runnable() {
+					@Override
+					public void run() {
+						logger.error("Saw cancelled for command object in firebase " + error);
+					}
+				});
+
+			}
+		});
 
 		monitoringConfigRef.addValueEventListener(new ValueEventListener() {
 
