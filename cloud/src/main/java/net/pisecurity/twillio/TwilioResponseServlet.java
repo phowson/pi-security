@@ -150,9 +150,9 @@ public class TwilioResponseServlet extends HttpServlet {
 
 	private void sendFirstMessageTML(String message, HttpServletResponse resp) throws IOException {
 		// Create a TwiML builder object
-		VoiceResponse twiml = new VoiceResponse.Builder()
+		VoiceResponse twiml = new VoiceResponse.Builder().gather(new Gather.Builder().numDigits(1)
 				.say(new Say.Builder(message + ". Press 1 to acknowledge this call").voice(Say.Voice.ALICE).build())
-				.gather(new Gather.Builder().numDigits(1).build()).build();
+				.build()).build();
 
 		// Render TwiML as XML
 		resp.setContentType("text/xml");
