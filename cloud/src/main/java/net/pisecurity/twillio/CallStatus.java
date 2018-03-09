@@ -8,6 +8,7 @@ public class CallStatus {
 	public CallStatusListener listener;
 	public int index;
 	public boolean success;
+	public boolean notified;
 
 	public CallStatus(long creationTime, String[] numbers, String message, CallStatusListener listener, int index) {
 		this.creationTime = creationTime;

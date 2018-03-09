@@ -1,8 +1,12 @@
 package net.pisecurity.twillio;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -19,13 +23,45 @@ import com.twilio.twiml.voice.Gather;
 import com.twilio.twiml.voice.Hangup;
 import com.twilio.twiml.voice.Say;
 
-public class TwillioResponseServlet extends HttpServlet {
+public class TwilioResponseServlet extends HttpServlet {
 
-	private static final Logger logger = LogManager.getLogger(TwillioResponseServlet.class);
+	private static final Logger logger = LogManager.getLogger(TwilioResponseServlet.class);
 	private static final long serialVersionUID = 3823780864474862531L;
 	private static final long MAX_WAIT = 10000;
+	static final long TIMEOUT_TIME = 120000;
 
 	private Map<String, CallStatus> calls = new HashMap<>();
+
+	public synchronized void cleanOldCalls() {
+		long now = System.currentTimeMillis();
+		for (Iterator<Map.Entry<String, CallStatus>> it = calls.entrySet().iterator(); it.hasNext();) {
+
+			Entry<String, CallStatus> e = it.next();
+			CallStatus c = e.getValue();
+			long d = now - c.creationTime;
+
+			if (d > TIMEOUT_TIME * 2) {
+				it.remove();
+			}
+
+		}
+	}
+
+	public synchronized List<CallStatus> getTimedOutCalls() {
+		List<CallStatus> out = new ArrayList<CallStatus>();
+		long now = System.currentTimeMillis();
+		for (CallStatus c : calls.values()) {
+			long d = now - c.creationTime;
+
+			if (d > TIMEOUT_TIME) {
+				out.add(c);
+			}
+
+		}
+
+		return out;
+
+	}
 
 	@Override
 	protected synchronized void doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -35,7 +71,6 @@ public class TwillioResponseServlet extends HttpServlet {
 		CallStatus status;
 		try {
 			status = getStatus(req);
-
 		} catch (InterruptedException e) {
 			logger.error("Unexpected exception ", e);
 			return;
@@ -47,11 +82,16 @@ public class TwillioResponseServlet extends HttpServlet {
 		logger.info("Call status = " + callStatus);
 		if (callStatus.equals("in-progress")) {
 			if ("Gather End".equals(req.getParameter("msg")) && "1".equals(req.getParameter("Digits"))) {
-				if (status.listener != null) {
-					status.listener.onCallComplete(true);
+				if (!status.notified && status.listener != null) {
+					try {
+						status.listener.onCallComplete(true);
+					} catch (Exception e) {
+						logger.error("Unexpected exception", e);
+					}
 				}
 
 				status.success = true;
+				status.notified = true;
 
 				sendHangupTML(resp);
 			} else {
