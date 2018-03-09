@@ -66,8 +66,7 @@ public class TwilioResponseServlet extends HttpServlet {
 	@Override
 	protected synchronized void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		logger.info("Saw post");
-		logger.info(req.getParameterMap());
+		logger.info("Saw HTTP post from Twilio, params = " + req.getParameterMap());
 		CallStatus status;
 		try {
 			status = getStatus(req);
@@ -103,8 +102,7 @@ public class TwilioResponseServlet extends HttpServlet {
 	@Override
 	protected synchronized void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		logger.info("Saw Get");
-		logger.info(req.getParameterMap());
+		logger.info("Saw HTTP Get from Twilio , params= " + req.getParameterMap());
 		String[] callStatusArr = req.getParameterValues("CallStatus");
 		String callStatus = callStatusArr[callStatusArr.length - 1];
 
@@ -167,6 +165,7 @@ public class TwilioResponseServlet extends HttpServlet {
 	}
 
 	public synchronized void onNewCall(Call call, CallStatus callStatus) {
+		logger.info("Call in progress : " + call.getSid());
 		calls.put(call.getSid(), callStatus);
 		notifyAll();
 	}
