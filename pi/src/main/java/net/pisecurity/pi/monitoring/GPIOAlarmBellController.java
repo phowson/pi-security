@@ -1,11 +1,7 @@
 package net.pisecurity.pi.monitoring;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -15,17 +11,10 @@ import org.apache.logging.log4j.Logger;
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
-import com.pi4j.io.gpio.GpioPinShutdown;
-import com.pi4j.io.gpio.GpioProvider;
-import com.pi4j.io.gpio.Pin;
-import com.pi4j.io.gpio.PinMode;
-import com.pi4j.io.gpio.PinPullResistance;
 import com.pi4j.io.gpio.PinState;
-import com.pi4j.io.gpio.event.GpioPinListener;
 
 import net.pisecurity.model.AlarmBellConfig;
 import net.pisecurity.model.PinConfig;
-import net.pisecurity.pi.monitoring.GPIOAlarmBellController.PinConf;
 import net.pisecurity.pi.util.PinMapping;
 
 public class GPIOAlarmBellController implements Runnable, AlarmBellController {

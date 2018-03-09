@@ -15,17 +15,15 @@ import net.pisecurity.pi.persist.PersistenceService;
 
 public class CommandHandler {
 	private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(CommandHandler.class);
-	private DatabaseReference commandRef;
+
 	private AlertState alertState;
 	private Executor mainExecutor;
 	private net.pisecurity.pi.monitoring.EventListener listener;
 	private AlarmBellController alarmBellController;
 	private PersistenceService persistenceService;
 
-	public CommandHandler(DatabaseReference commandRef, AlertState alertState, Executor mainExecutor,
-			AlarmBellController alarmBellController, net.pisecurity.pi.monitoring.EventListener listener,
-			PersistenceService persistenceService) {
-		this.commandRef = commandRef;
+	public CommandHandler(AlertState alertState, Executor mainExecutor, AlarmBellController alarmBellController,
+			net.pisecurity.pi.monitoring.EventListener listener, PersistenceService persistenceService) {
 		this.alertState = alertState;
 		this.mainExecutor = mainExecutor;
 		this.listener = listener;
@@ -52,7 +50,7 @@ public class CommandHandler {
 
 					case DISARM:
 						alertState.armed = false;
-
+						alarmBellController.off();
 						listener.onEvent(new Event(System.currentTimeMillis(), -1, "System manually disarmed",
 								EventType.SYSTEM_MANUAL_DISARMED, "Disrmed manually"));
 						break;

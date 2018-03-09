@@ -5,6 +5,7 @@ import java.util.Arrays;
 
 import net.pisecurity.model.AlarmBellConfig;
 import net.pisecurity.model.AutoArmConfig;
+import net.pisecurity.model.Command;
 import net.pisecurity.model.MobileDeviceConfig;
 import net.pisecurity.model.MonitoredPinConfig;
 import net.pisecurity.model.MonitoringConfig;
@@ -70,6 +71,7 @@ public class ExampleConfigFactory {
 	public static RequestedState createRequestedState() {
 		RequestedState out = new RequestedState();
 		out.applied = true;
+		out.command = Command.RESET_ALARM;
 		out.timestamp = System.currentTimeMillis();
 		return out;
 	}

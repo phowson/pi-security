@@ -101,10 +101,12 @@ public class App implements UncaughtExceptionHandler, Runnable {
 		eventsRef = locationRef.child("events");
 		hbRef = locationRef.child("heartbeat");
 
-		FirebasePersistenceService persistenceService = new FirebasePersistenceService(database, eventsRef, hbRef);
+		FirebasePersistenceService persistenceService = new FirebasePersistenceService(database, eventsRef, hbRef,
+				commandRef);
 		this.internetStatus = persistenceService;
 		this.persistenceService = persistenceService;
 		this.eventListener = new PersistingEventListener(persistenceService);
+		persistenceService.setListener(eventListener);
 	}
 
 	protected void onMonitoringConfigChange(DataSnapshot snapshot) {
@@ -229,8 +231,8 @@ public class App implements UncaughtExceptionHandler, Runnable {
 		this.autoArmController = new AutoArmController(this.internetStatus, mainExecutor, pingExecutor, alertState,
 				eventListener);
 
-		this.commandHandler = new CommandHandler(commandRef, alertState, mainExecutor, alarmBellController,
-				eventListener, persistenceService);
+		this.commandHandler = new CommandHandler(alertState, mainExecutor, alarmBellController, eventListener,
+				persistenceService);
 
 		commandRef.addValueEventListener(new ValueEventListener() {
 			@Override

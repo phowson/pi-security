@@ -16,8 +16,10 @@ import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
 
 import net.pisecurity.model.Event;
+import net.pisecurity.model.EventType;
 import net.pisecurity.model.Heartbeat;
 import net.pisecurity.model.RequestedState;
+import net.pisecurity.pi.monitoring.EventListener;
 import net.pisecurity.pi.monitoring.InternetStatus;
 import net.pisecurity.util.NamedThreadFactory;
 
@@ -30,18 +32,70 @@ public class FirebasePersistenceService implements PersistenceService, InternetS
 	private ScheduledThreadPoolExecutor retryScheduler;
 	private int maxQueueLength = 10000;
 
+	private EventListener listener;
+	private DatabaseReference requestedStateRef;
+
 	public FirebasePersistenceService(DatabaseReference database, DatabaseReference eventsRef,
-			DatabaseReference heartbeatRef) {
+			DatabaseReference heartbeatRef, DatabaseReference requestedStateRef) {
 		this.eventsRef = eventsRef;
 		this.heartbeatRef = heartbeatRef;
+		this.requestedStateRef = requestedStateRef;
 		retryScheduler = new ScheduledThreadPoolExecutor(1, new NamedThreadFactory("Firebase Retry", this, false));
 
+	}
+
+	public void setListener(EventListener listener) {
+		this.listener = listener;
 	}
 
 	@Override
 	public boolean isConnected() {
 		return connected;
 
+	}
+
+	protected void retry(RequestedState event) {
+		if (retryScheduler.getQueue().size() > maxQueueLength) {
+			logger.warn("Discarding event due to queue overrun");
+			return;
+		}
+		retryScheduler.schedule(new Runnable() {
+
+			@Override
+			public void run() {
+
+				try {
+					persist(event);
+				} catch (Exception ex) {
+					logger.error("Unexpected exception on insert retry for " + event, ex);
+				}
+
+			}
+		}, RETRY_DELAY_SECONDS, TimeUnit.SECONDS);
+
+	}
+
+	@Override
+	public void persist(RequestedState event) {
+		requestedStateRef.runTransaction(new Transaction.Handler() {
+			public Transaction.Result doTransaction(MutableData mutableData) {
+				mutableData.setValue(event);
+				return Transaction.success(mutableData);
+			}
+
+			public void onComplete(DatabaseError databaseError, boolean complete, DataSnapshot dataSnapshot) {
+				if (databaseError == null && complete) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Command table persisted OK");
+					}
+
+					onConnectedChanged(true);
+				} else {
+					onConnectedChanged(false);
+					retry(event);
+				}
+			}
+		});
 	}
 
 	@Override
@@ -65,12 +119,11 @@ public class FirebasePersistenceService implements PersistenceService, InternetS
 					if (!connected) {
 						logger.info("Internet connection regained");
 					}
-					connected = true;
+					onConnectedChanged(true);
 				} else {
 					logger.error("Error reported during save of event. Cannot continue" + databaseError
 							+ ", complete = " + complete + ", retries = " + retries);
-					connected = false;
-
+					onConnectedChanged(false);
 					retry(event, retries + 1);
 
 				}
@@ -115,26 +168,44 @@ public class FirebasePersistenceService implements PersistenceService, InternetS
 					if (!connected) {
 						logger.info("Internet connection regained");
 					}
-					connected = true;
+					onConnectedChanged(true);
 				} else {
 					logger.fatal("Error reported during save of heartbeat. Cannot continue" + databaseError
 							+ ", complete = " + complete);
-					connected = false;
+					onConnectedChanged(false);
 
 				}
 			}
 		});
 	}
 
-	@Override
-	public void uncaughtException(Thread t, Throwable e) {
-		logger.fatal("Saw uncaught exception on thread : " + t, e);
+	protected synchronized void onConnectedChanged(boolean b) {
+		if (!connected) {
+			logger.info("Internet connection regained");
+		}
+
+		boolean publishEvent = b != connected;
+		connected = b;
+
+		if (listener != null && publishEvent) {
+			String label;
+			EventType et;
+			if (b) {
+				label = "Internet connection regained";
+				et = EventType.INTERNET_ONLINE;
+			} else {
+				label = "Internet connection lost";
+				et = EventType.INTERNET_OFFLINE;
+			}
+
+			listener.onEvent(new Event(System.currentTimeMillis(), 1, label, et, label));
+		}
+
 	}
 
 	@Override
-	public void persist(RequestedState requestedState) {
-		// TODO Auto-generated method stub
-
+	public void uncaughtException(Thread t, Throwable e) {
+		logger.fatal("Saw uncaught exception on thread : " + t, e);
 	}
 
 }

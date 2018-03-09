@@ -32,6 +32,7 @@ public class MonitoringService implements IOActivityListener {
 		this.mainExecutor = mainExecutor;
 		this.eventListener = eventListener;
 		this.ioInterface = ioInterface;
+		this.internetStatus = internetStatus;
 		this.alarmBellController = alarmBellController;
 		this.config = config;
 
@@ -80,10 +81,9 @@ public class MonitoringService implements IOActivityListener {
 	}
 
 	protected void doAlarmCheckAndRaise(long now, MonitoredPinConfig cfg, int pin) {
-		if (alertState.armed && !alertState.alarmActive && 
-				// Always auto trigger if no internet
-				(config.autoTriggerAlarm || !internetStatus.isConnected())
-				&& cfg.raisesAlert) {
+		if (alertState.armed && !alertState.alarmActive &&
+		// Always auto trigger if no internet
+				(config.autoTriggerAlarm || !internetStatus.isConnected()) && cfg.raisesAlert) {
 			if (alertState.firstActivityTs == 0) {
 				alertState.firstActivityTs = now;
 			}
