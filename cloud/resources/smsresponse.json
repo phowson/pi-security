@@ -1,0 +1,24 @@
+{
+   "sid":"SMf3bc3f207fab4b1e924f04074094b03d",
+   "date_created":"Fri, 09 Mar 2018 16:14:05 +0000",
+   "date_updated":"Fri, 09 Mar 2018 16:14:05 +0000",
+   "date_sent":null,
+   "account_sid":"AC4f8885d8a0c948a287ec039eabce1970",
+   "to":"+447855311224",
+   "from":"+447480619081",
+   "messaging_service_sid":null,
+   "body":"Sent from your Twilio trial account - Hello world",
+   "status":"queued",
+   "num_segments":"1",
+   "num_media":"0",
+   "direction":"outbound-api",
+   "api_version":"2010-04-01",
+   "price":null,
+   "price_unit":"USD",
+   "error_code":null,
+   "error_message":null,
+   "uri":"/2010-04-01/Accounts/AC4f8885d8a0c948a287ec039eabce1970/Messages/SMf3bc3f207fab4b1e924f04074094b03d.json",
+   "subresource_uris":{
+      "media":"/2010-04-01/Accounts/AC4f8885d8a0c948a287ec039eabce1970/Messages/SMf3bc3f207fab4b1e924f04074094b03d/Media.json"
+   }
+}
