@@ -1,0 +1,11 @@
+{
+	"firebaseConfig": {
+		"databaseURL": "https://pisecurity-72796.firebaseio.com",
+		"firebaseConfigFile": "./resources/config/example-firebase-config.json"
+	},
+	"serverConfig": {
+		"port": "8080",
+		"path": "/test/*",
+		"myUrl": "http://86.181.62.37:8080/test"
+	}
+}

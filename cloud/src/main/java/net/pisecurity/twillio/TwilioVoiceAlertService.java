@@ -73,6 +73,7 @@ public class TwilioVoiceAlertService implements UncaughtExceptionHandler, Runnab
 
 	public void makeCall(String[] numbers, String message, boolean sendSms, CallStatusListener listener)
 			throws URISyntaxException, ClientProtocolException, IOException {
+
 		logger.info("Starting call. Will try " + Arrays.toString(numbers) + " with message " + message);
 		CallStatus callStatus = new CallStatus(System.currentTimeMillis(), numbers, message, listener, 0, sendSms);
 		doCall(numbers[0], callStatus);
@@ -81,7 +82,13 @@ public class TwilioVoiceAlertService implements UncaughtExceptionHandler, Runnab
 
 	private void doCall(String string, CallStatus callStatus)
 			throws URISyntaxException, ClientProtocolException, IOException {
-
+		if (callStatus.listener != null) {
+			try {
+				callStatus.listener.onCallMade(string);
+			} catch (Exception e) {
+				logger.error("Unexpected exception", e);
+			}
+		}
 		if (callStatus.sendSms) {
 			twilioSMS.sendSms(new String[] { string }, callStatus.message);
 		}
@@ -112,8 +119,13 @@ public class TwilioVoiceAlertService implements UncaughtExceptionHandler, Runnab
 				new CallStatusListener() {
 
 					@Override
-					public void onCallComplete(boolean success) {
-						logger.info("Saw call complete = " + success);
+					public void onCallComplete(boolean success, String answererNumber) {
+						logger.info("Saw call complete = " + success + " number = " + answererNumber);
+					}
+
+					@Override
+					public void onCallMade(String number) {
+
 					}
 				});
 
@@ -146,7 +158,8 @@ public class TwilioVoiceAlertService implements UncaughtExceptionHandler, Runnab
 						}
 					} else {
 						try {
-							c.listener.onCallComplete(false);
+							
+							c.listener.onCallComplete(false, null);
 						} catch (Exception e) {
 							logger.error("Unexpected exception", e);
 						}

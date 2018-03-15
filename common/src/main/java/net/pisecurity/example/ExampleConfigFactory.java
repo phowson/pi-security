@@ -23,7 +23,7 @@ public class ExampleConfigFactory {
 
 		config.items = new ArrayList<>();
 
-		for (int i = 5; i < 22; ++i) {
+		for (int i : new int[] { 25, 24, 23, 22, 21, 14, 13, 12, 3, 2, 0, 7 }) {
 			MonitoredPinConfig e = new MonitoredPinConfig();
 			e.enabled = false;
 			e.gpioPin = i;

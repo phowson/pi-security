@@ -30,7 +30,7 @@ public class GPIOInterface implements IOInterface, GpioPinListenerDigital {
 	private TIntObjectHashMap<List<IOActivityListener>> listeners = new TIntObjectHashMap<>();
 
 	public GPIOInterface() {
-		for (int i = 2; i < 22; ++i) {
+		for (int i = 0; i < 32; ++i) {
 			reversePinMapping.put(PinMapping.mapPin(i), i);
 		}
 	}
@@ -40,13 +40,14 @@ public class GPIOInterface implements IOInterface, GpioPinListenerDigital {
 		// provision gpio pin #02 as an input pin with its internal pull down
 		// resistor enabled
 		Pin pinCode = PinMapping.mapPin(pin);
+
 		List<IOActivityListener> l = listeners.get(pin);
 
 		if (l == null) {
 			l = new ArrayList<>();
 			listeners.put(pin, l);
 			logger.info("Provisioning pin : " + pinCode);
-			final GpioPinDigitalInput input = gpio.provisionDigitalInputPin(pinCode, PinPullResistance.PULL_DOWN);
+			final GpioPinDigitalInput input = gpio.provisionDigitalInputPin(pinCode, PinPullResistance.PULL_UP);
 			gpio.addListener(this, input);
 		}
 		l.add(listener);
@@ -65,8 +66,6 @@ public class GPIOInterface implements IOInterface, GpioPinListenerDigital {
 		});
 	}
 
-
-
 	@Override
 	public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
 
@@ -74,7 +73,7 @@ public class GPIOInterface implements IOInterface, GpioPinListenerDigital {
 			logger.info("Saw GPIO Event : " + event);
 		}
 
-		int pinNum = reversePinMapping.get(event.getPin());
+		int pinNum = reversePinMapping.get(event.getPin().getPin());
 		List<IOActivityListener> l = listeners.get(pinNum);
 		if (l != null) {
 			for (IOActivityListener listener : l) {

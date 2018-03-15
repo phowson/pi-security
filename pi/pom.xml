@@ -7,7 +7,17 @@
 		<version>${my.version}</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
-
+	<repositories>
+		<repository>
+			<id>oss-snapshots-repo</id>
+			<name>Sonatype OSS Maven Repository</name>
+			<url>https://oss.sonatype.org/content/groups/public</url>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
+		</repository>
+	</repositories>
 	<artifactId>pisecurity-pi</artifactId>
 	<packaging>jar</packaging>
 
@@ -15,7 +25,7 @@
 	<url>http://phil.howson.net</url>
 
 	<properties>
-		<pi4j.version>1.1</pi4j.version>
+		<pi4j.version>1.2-SNAPSHOT</pi4j.version>
 	</properties>
 
 	<dependencies>
@@ -39,11 +49,11 @@
 			<version>${pi4j.version}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>com.pi4j</groupId>
-			<artifactId>pi4j-service</artifactId>
-			<version>${pi4j.version}</version>
-		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>com.pi4j</groupId> -->
+<!-- 			<artifactId>pi4j-service</artifactId> -->
+<!-- 			<version>${pi4j.version}</version> -->
+<!-- 		</dependency> -->
 
 
 		<dependency>
@@ -102,7 +112,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>net.pisecuirty.pi.main.App</mainClass>
+							<mainClass>net.pisecurity.pi.main.App</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
