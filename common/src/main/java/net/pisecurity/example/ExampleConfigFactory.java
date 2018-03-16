@@ -6,6 +6,7 @@ import java.util.Arrays;
 import net.pisecurity.model.AlarmBellConfig;
 import net.pisecurity.model.AutoArmConfig;
 import net.pisecurity.model.Command;
+import net.pisecurity.model.Edges;
 import net.pisecurity.model.MobileDeviceConfig;
 import net.pisecurity.model.MonitoredPinConfig;
 import net.pisecurity.model.MonitoringConfig;
@@ -18,17 +19,36 @@ public class ExampleConfigFactory {
 	public static MonitoringConfig createMonitoringConfig() {
 		MonitoringConfig config = new MonitoringConfig();
 
+		config.dhtSensorEnabled = true;
+		config.dhtSensorPin = 16;
+
 		config.bellEnabled = true;
 		config.alarmDelaySeconds = 20;
 
 		config.items = new ArrayList<>();
 
+		{
+			MonitoredPinConfig e = new MonitoredPinConfig();
+			e.enabled = true;
+			e.gpioPin = 27;
+			e.label = "Device on GPIO #" + 27;
+			e.type = SensorType.MOTION_SENSOR;
+			e.pullResistance = "OFF";
+			e.edges = Edges.RISING;
+			e.raiseImmediately = false;
+			e.raisesAlert = true;
+			e.reportingEnabled = true;
+			config.items.add(e);
+		}
+
 		for (int i : new int[] { 25, 24, 23, 22, 21, 14, 13, 12, 3, 2, 0, 7 }) {
 			MonitoredPinConfig e = new MonitoredPinConfig();
-			e.enabled = false;
+			e.enabled = true;
 			e.gpioPin = i;
 			e.label = "Device on GPIO #" + i;
 			e.type = SensorType.MOTION_SENSOR;
+			e.pullResistance = "PULL_UP";
+			e.edges = Edges.BOTH;
 			e.raiseImmediately = false;
 			e.raisesAlert = true;
 			e.reportingEnabled = true;

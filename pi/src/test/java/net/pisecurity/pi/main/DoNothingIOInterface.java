@@ -10,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.pi4j.io.gpio.GpioPinDigitalInput;
+import com.pi4j.io.gpio.PinEdge;
 import com.pi4j.io.gpio.PinPullResistance;
 
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -28,7 +29,7 @@ public class DoNothingIOInterface implements IOInterface, Runnable {
 	}
 
 	@Override
-	public synchronized void subscribeEvents(int pin, IOActivityListener listener) {
+	public void subscribeEvents(int pin, PinPullResistance res, IOActivityListener listener) {
 		logger.info("Subcribing to events on pin " + pin + " for listener " + listener);
 
 		List<IOActivityListener> l = listeners.get(pin);
@@ -71,7 +72,7 @@ public class DoNothingIOInterface implements IOInterface, Runnable {
 					if (l != null) {
 						for (IOActivityListener listener : l) {
 							try {
-								listener.onActivity(pin);
+								listener.onActivity(pin, PinEdge.RISING);
 							} catch (Exception ex) {
 								logger.error("Unexpected exception while dispatching event on pin : " + pin, ex);
 							}

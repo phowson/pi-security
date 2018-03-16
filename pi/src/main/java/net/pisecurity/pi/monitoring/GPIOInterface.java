@@ -36,7 +36,7 @@ public class GPIOInterface implements IOInterface, GpioPinListenerDigital {
 	}
 
 	@Override
-	public synchronized void subscribeEvents(int pin, IOActivityListener listener) {
+	public synchronized void subscribeEvents(int pin, PinPullResistance res, IOActivityListener listener) {
 		// provision gpio pin #02 as an input pin with its internal pull down
 		// resistor enabled
 		Pin pinCode = PinMapping.mapPin(pin);
@@ -47,7 +47,7 @@ public class GPIOInterface implements IOInterface, GpioPinListenerDigital {
 			l = new ArrayList<>();
 			listeners.put(pin, l);
 			logger.info("Provisioning pin : " + pinCode);
-			final GpioPinDigitalInput input = gpio.provisionDigitalInputPin(pinCode, PinPullResistance.PULL_UP);
+			final GpioPinDigitalInput input = gpio.provisionDigitalInputPin(pinCode, res);
 			gpio.addListener(this, input);
 		}
 		l.add(listener);
@@ -70,7 +70,9 @@ public class GPIOInterface implements IOInterface, GpioPinListenerDigital {
 	public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
 
 		if (logger.isInfoEnabled()) {
-			logger.info("Saw GPIO Event : " + event);
+			logger.info("Saw GPIO Event : edge = " + event.getEdge() + " pin =" + event.getPin() + ", type = "
+					+ event.getEventType() + ", source = " + event.getSource());
+
 		}
 
 		int pinNum = reversePinMapping.get(event.getPin().getPin());
@@ -78,7 +80,7 @@ public class GPIOInterface implements IOInterface, GpioPinListenerDigital {
 		if (l != null) {
 			for (IOActivityListener listener : l) {
 				try {
-					listener.onActivity(pinNum);
+					listener.onActivity(pinNum, event.getEdge());
 				} catch (Exception ex) {
 					logger.error("Unexpected exception while dispatching event : " + event, ex);
 				}

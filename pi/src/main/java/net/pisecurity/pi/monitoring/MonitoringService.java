@@ -6,7 +6,11 @@ import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.pi4j.io.gpio.PinEdge;
+import com.pi4j.io.gpio.PinPullResistance;
+
 import gnu.trove.map.hash.TIntObjectHashMap;
+import net.pisecurity.model.Edges;
 import net.pisecurity.model.Event;
 import net.pisecurity.model.EventType;
 import net.pisecurity.model.MonitoredPinConfig;
@@ -38,7 +42,7 @@ public class MonitoringService implements IOActivityListener {
 
 		for (MonitoredPinConfig pc : config.items) {
 			if (pc.enabled) {
-				ioInterface.subscribeEvents(pc.gpioPin, this);
+				ioInterface.subscribeEvents(pc.gpioPin, PinPullResistance.valueOf(pc.pullResistance), this);
 				pinConfigFastLookup.put(pc.gpioPin, pc);
 			}
 
@@ -56,25 +60,32 @@ public class MonitoringService implements IOActivityListener {
 	}
 
 	@Override
-	public void onActivity(int pin) {
+	public void onActivity(int pin, PinEdge pinEdge) {
 
 		long now = System.currentTimeMillis();
 		MonitoredPinConfig cfg = pinConfigFastLookup.get(pin);
 		if (cfg != null) {
-			this.eventListener
-					.onEvent(new Event(now, pin, cfg.label, EventType.ACTIVITY, "Activity detected on pin " + pin));
 
-			mainExecutor.execute(new Runnable() {
+			if (cfg.edges == Edges.BOTH || (cfg.edges == Edges.RISING && pinEdge == PinEdge.RISING)
+					|| (cfg.edges == Edges.FALLING && pinEdge == PinEdge.FALLING)) {
 
-				@Override
-				public void run() {
-					try {
-						doAlarmCheckAndRaise(now, cfg, pin);
-					} catch (Exception ex) {
-						logger.error("Unexpected exception while checking alarm state for " + pin, ex);
+				this.eventListener
+						.onEvent(new Event(now, pin, cfg.label, EventType.ACTIVITY, "Activity detected on pin " + pin));
+
+				mainExecutor.execute(new Runnable() {
+
+					@Override
+					public void run() {
+						try {
+							doAlarmCheckAndRaise(now, cfg, pin);
+						} catch (Exception ex) {
+							logger.error("Unexpected exception while checking alarm state for " + pin, ex);
+						}
 					}
-				}
-			});
+				});
+			} else {
+				logger.info("Pin " + pin + " activity was not on subscribed edge. Ignoring");
+			}
 
 		}
 

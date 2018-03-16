@@ -35,6 +35,8 @@ import net.pisecurity.model.RequestedState;
 import net.pisecurity.pi.autoarm.AutoArmController;
 import net.pisecurity.pi.command.CommandHandler;
 import net.pisecurity.pi.config.AppConfig;
+import net.pisecurity.pi.dht.DHT11Factory;
+import net.pisecurity.pi.dht.DHT11FactoryImpl;
 import net.pisecurity.pi.monitoring.GPIOAlarmBellController;
 import net.pisecurity.pi.monitoring.AlertState;
 import net.pisecurity.pi.monitoring.EventListener;
@@ -75,8 +77,8 @@ public class App implements UncaughtExceptionHandler, Runnable {
 	private DatabaseReference commandRef;
 	private CommandHandler commandHandler;
 
-	public App(String configFileName, IOInterface ioInterface, AlarmBellController alarmBellController)
-			throws FileNotFoundException, IOException {
+	public App(String configFileName, IOInterface ioInterface, AlarmBellController alarmBellController,
+			DHT11Factory dht11Factory) throws FileNotFoundException, IOException {
 		this.ioInterface = ioInterface;
 		GsonBuilder builder = new GsonBuilder();
 		Gson gson = builder.create();
@@ -172,7 +174,7 @@ public class App implements UncaughtExceptionHandler, Runnable {
 
 		String configFileName = args[0];
 
-		new App(configFileName, new GPIOInterface(), new GPIOAlarmBellController()).start();
+		new App(configFileName, new GPIOInterface(), new GPIOAlarmBellController(), new DHT11FactoryImpl()).start();
 
 	}
 

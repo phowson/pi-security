@@ -8,11 +8,14 @@ public class MonitoredPinConfig {
 	public boolean reportingEnabled;
 	public boolean raiseImmediately;
 	public boolean enabled;
+	public String pullResistance;
+	public Edges edges;
 
 	@Override
 	public String toString() {
-		return "MonitoredPinConfig [gpioPin=" + gpioPin + ", label=" + label + ", raisesAlert=" + raisesAlert
-				+ ", enabled=" + enabled + "]";
+		return "MonitoredPinConfig [gpioPin=" + gpioPin + ", label=" + label + ", type=" + type + ", raisesAlert="
+				+ raisesAlert + ", reportingEnabled=" + reportingEnabled + ", raiseImmediately=" + raiseImmediately
+				+ ", enabled=" + enabled + ", pullResistance=" + pullResistance + ", edges=" + edges + "]";
 	}
 
 }

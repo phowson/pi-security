@@ -6,6 +6,9 @@ public class MonitoringConfig {
 
 	public List<MonitoredPinConfig> items;
 
+	public boolean dhtSensorEnabled;
+	public int dhtSensorPin;
+
 	public boolean autoTriggerAlarm;
 	public boolean bellEnabled;
 	public long alarmDelaySeconds;
