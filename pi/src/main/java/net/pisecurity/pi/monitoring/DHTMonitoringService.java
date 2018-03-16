@@ -61,7 +61,7 @@ public class DHTMonitoringService implements Runnable {
 					sumTemp += readings.temperature;
 					sumHumidity += readings.humidity;
 					++count;
-					if (count > 10) {
+					if (count > 60) {
 						DHTObservation obs = new DHTObservation();
 						obs.time = System.currentTimeMillis();
 						obs.humidityPercent = sumHumidity / count;

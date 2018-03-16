@@ -112,7 +112,7 @@ public class GPIOAlarmBellController implements Runnable, AlarmBellController {
 	public void run() {
 		try {
 			synchronized (this) {
-				if (System.currentTimeMillis() - lastActivationTime > config.maxActivationTimeSeconds * 1000) {
+				if (System.currentTimeMillis() - lastActivationTime >= (config.maxActivationTimeSeconds - 1) * 1000) {
 					off();
 				}
 			}

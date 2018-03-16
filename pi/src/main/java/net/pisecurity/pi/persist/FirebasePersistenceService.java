@@ -24,9 +24,11 @@ import net.pisecurity.pi.monitoring.EventListener;
 import net.pisecurity.pi.monitoring.InternetStatus;
 import net.pisecurity.util.NamedThreadFactory;
 
-public class FirebasePersistenceService implements PersistenceService, InternetStatus, UncaughtExceptionHandler {
+public class FirebasePersistenceService
+		implements PersistenceService, InternetStatus, UncaughtExceptionHandler, Runnable {
 	private static final Logger logger = LogManager.getLogger(FirebasePersistenceService.class);
 	private static final long RETRY_DELAY_SECONDS = 10;
+	private static final long PERSIST_TIMEOUT = 60000;
 	private DatabaseReference eventsRef;
 	private volatile boolean connected = true;
 	private DatabaseReference heartbeatRef;
@@ -37,6 +39,9 @@ public class FirebasePersistenceService implements PersistenceService, InternetS
 	private EventListener listener;
 	private DatabaseReference requestedStateRef;
 
+	private long lastHeartbeatPersisted;
+	private long lastHbTime;
+
 	public FirebasePersistenceService(DatabaseReference database, DatabaseReference eventsRef,
 			DatabaseReference heartbeatRef, DatabaseReference requestedStateRef, DatabaseReference dhtRef) {
 		this.eventsRef = eventsRef;
@@ -44,7 +49,7 @@ public class FirebasePersistenceService implements PersistenceService, InternetS
 		this.requestedStateRef = requestedStateRef;
 		this.dhtRef = dhtRef;
 		retryScheduler = new ScheduledThreadPoolExecutor(1, new NamedThreadFactory("Firebase Retry", this, false));
-
+		retryScheduler.scheduleWithFixedDelay(this, PERSIST_TIMEOUT, PERSIST_TIMEOUT, TimeUnit.MILLISECONDS);
 	}
 
 	public void setListener(EventListener listener) {
@@ -87,6 +92,7 @@ public class FirebasePersistenceService implements PersistenceService, InternetS
 			}
 
 			public void onComplete(DatabaseError databaseError, boolean complete, DataSnapshot dataSnapshot) {
+
 				if (databaseError == null && complete) {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Command table persisted OK");
@@ -182,26 +188,35 @@ public class FirebasePersistenceService implements PersistenceService, InternetS
 
 	@Override
 	public void persist(Heartbeat heartBeat) {
+		synchronized (this) {
+			lastHbTime = heartBeat.timestamp;
+		}
+
 		heartbeatRef.runTransaction(new Transaction.Handler() {
+
 			public Transaction.Result doTransaction(MutableData mutableData) {
 				mutableData.setValue(heartBeat);
 				return Transaction.success(mutableData);
 			}
 
 			public void onComplete(DatabaseError databaseError, boolean complete, DataSnapshot dataSnapshot) {
-				if (databaseError == null && complete) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Heartbeat persisted OK");
-					}
-					if (!connected) {
-						logger.info("Internet connection regained");
-					}
-					onConnectedChanged(true);
-				} else {
-					logger.fatal("Error reported during save of heartbeat. Cannot continue" + databaseError
-							+ ", complete = " + complete);
-					onConnectedChanged(false);
 
+				synchronized (FirebasePersistenceService.this) {
+					if (databaseError == null && complete) {
+						lastHeartbeatPersisted = System.currentTimeMillis();
+						if (logger.isDebugEnabled()) {
+							logger.debug("Heartbeat persisted OK");
+						}
+						if (!connected) {
+							logger.info("Internet connection regained");
+						}
+						onConnectedChanged(true);
+					} else {
+						logger.fatal("Error reported during save of heartbeat. Cannot continue" + databaseError
+								+ ", complete = " + complete);
+						onConnectedChanged(false);
+
+					}
 				}
 			}
 		});
@@ -234,6 +249,24 @@ public class FirebasePersistenceService implements PersistenceService, InternetS
 	@Override
 	public void uncaughtException(Thread t, Throwable e) {
 		logger.fatal("Saw uncaught exception on thread : " + t, e);
+	}
+
+	@Override
+	public void run() {
+		try {
+			synchronized (this) {
+				if (lastHeartbeatPersisted != 0) {
+					long delay = lastHbTime- lastHeartbeatPersisted;
+					if (delay > PERSIST_TIMEOUT) {
+						onConnectedChanged(false);
+					}
+
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Unexpected exception", e);
+		}
+
 	}
 
 }
