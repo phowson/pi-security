@@ -15,6 +15,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
 
+import net.pisecurity.model.DHTObservation;
 import net.pisecurity.model.Event;
 import net.pisecurity.model.EventType;
 import net.pisecurity.model.Heartbeat;
@@ -31,15 +32,17 @@ public class FirebasePersistenceService implements PersistenceService, InternetS
 	private DatabaseReference heartbeatRef;
 	private ScheduledThreadPoolExecutor retryScheduler;
 	private int maxQueueLength = 10000;
+	private DatabaseReference dhtRef;
 
 	private EventListener listener;
 	private DatabaseReference requestedStateRef;
 
 	public FirebasePersistenceService(DatabaseReference database, DatabaseReference eventsRef,
-			DatabaseReference heartbeatRef, DatabaseReference requestedStateRef) {
+			DatabaseReference heartbeatRef, DatabaseReference requestedStateRef, DatabaseReference dhtRef) {
 		this.eventsRef = eventsRef;
 		this.heartbeatRef = heartbeatRef;
 		this.requestedStateRef = requestedStateRef;
+		this.dhtRef = dhtRef;
 		retryScheduler = new ScheduledThreadPoolExecutor(1, new NamedThreadFactory("Firebase Retry", this, false));
 
 	}
@@ -149,6 +152,31 @@ public class FirebasePersistenceService implements PersistenceService, InternetS
 
 			}
 		}, RETRY_DELAY_SECONDS, TimeUnit.SECONDS);
+
+	}
+
+	@Override
+	public void persist(DHTObservation obs) {
+		dhtRef.push().runTransaction(new Transaction.Handler() {
+			public Transaction.Result doTransaction(MutableData mutableData) {
+				mutableData.setValue(obs);
+				return Transaction.success(mutableData);
+			}
+
+			public void onComplete(DatabaseError databaseError, boolean complete, DataSnapshot dataSnapshot) {
+				if (databaseError == null && complete) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("observation persisted OK");
+					}
+					onConnectedChanged(true);
+				} else {
+					logger.fatal("Error reported during save of heartbeat. Cannot continue" + databaseError
+							+ ", complete = " + complete);
+					onConnectedChanged(false);
+
+				}
+			}
+		});
 
 	}
 

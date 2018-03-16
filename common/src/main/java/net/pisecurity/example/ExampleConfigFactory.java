@@ -21,6 +21,7 @@ public class ExampleConfigFactory {
 
 		config.dhtSensorEnabled = true;
 		config.dhtSensorPin = 16;
+		config.dhtSensorLocationName = "Cupboard";
 
 		config.bellEnabled = true;
 		config.alarmDelaySeconds = 20;

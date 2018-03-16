@@ -16,7 +16,7 @@ public class DHT11TestImpl implements DHT11 {
 	}
 
 	@Override
-	public DHTReading read() throws InterruptedException {
+	public DHTReading read() {
 		DHTReading r = new DHTReading();
 		r.humidity = 30;
 		r.temperature = 22;

@@ -39,6 +39,7 @@ import net.pisecurity.pi.dht.DHT11Factory;
 import net.pisecurity.pi.dht.DHT11FactoryImpl;
 import net.pisecurity.pi.monitoring.GPIOAlarmBellController;
 import net.pisecurity.pi.monitoring.AlertState;
+import net.pisecurity.pi.monitoring.DHTMonitoringService;
 import net.pisecurity.pi.monitoring.EventListener;
 import net.pisecurity.pi.monitoring.GPIOInterface;
 import net.pisecurity.pi.monitoring.AlarmBellController;
@@ -76,6 +77,9 @@ public class App implements UncaughtExceptionHandler, Runnable {
 	private DatabaseReference hbRef;
 	private DatabaseReference commandRef;
 	private CommandHandler commandHandler;
+	private DatabaseReference dhtRef;
+	private DHT11Factory dht11Factory;
+	private DHTMonitoringService dhtService;
 
 	public App(String configFileName, IOInterface ioInterface, AlarmBellController alarmBellController,
 			DHT11Factory dht11Factory) throws FileNotFoundException, IOException {
@@ -83,6 +87,7 @@ public class App implements UncaughtExceptionHandler, Runnable {
 		GsonBuilder builder = new GsonBuilder();
 		Gson gson = builder.create();
 		this.alarmBellController = alarmBellController;
+		this.dht11Factory = dht11Factory;
 
 		logger.info("Initialisng from config file : " + configFileName);
 
@@ -102,9 +107,10 @@ public class App implements UncaughtExceptionHandler, Runnable {
 
 		eventsRef = locationRef.child("events");
 		hbRef = locationRef.child("heartbeat");
+		dhtRef = locationRef.child("humidityTemperature");
 
 		FirebasePersistenceService persistenceService = new FirebasePersistenceService(database, eventsRef, hbRef,
-				commandRef);
+				commandRef, dhtRef);
 		this.internetStatus = persistenceService;
 		this.persistenceService = persistenceService;
 		this.eventListener = new PersistingEventListener(persistenceService);
@@ -154,10 +160,29 @@ public class App implements UncaughtExceptionHandler, Runnable {
 			monitoringService.shutdown();
 		}
 
+		if (dhtService != null) {
+			try {
+				dhtService.shutdown();
+			} catch (InterruptedException e) {
+				logger.error("Unexpected exception", e);
+			}
+		}
+
+		if (config.dhtSensorEnabled) {
+			dhtService = new DHTMonitoringService(config.dhtSensorLocationName, persistenceService,
+					dht11Factory.create(config.dhtSensorPin));
+			logger.info("DHT service configured");
+		} else {
+			dhtService = null;
+		}
+
 		monitoringService = new MonitoringService(config, ioInterface, alertState, alarmBellController, eventListener,
 				internetStatus, mainExecutor);
 		logger.info("Monitoring service configured");
 
+		if (dhtService != null) {
+			dhtService.start();
+		}
 		configured = true;
 	}
 

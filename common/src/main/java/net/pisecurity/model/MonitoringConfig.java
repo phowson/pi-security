@@ -6,6 +6,7 @@ public class MonitoringConfig {
 
 	public List<MonitoredPinConfig> items;
 
+	public String dhtSensorLocationName;
 	public boolean dhtSensorEnabled;
 	public int dhtSensorPin;
 

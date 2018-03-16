@@ -18,6 +18,6 @@ public interface DHT11 {
 	 * @return
 	 * @throws InterruptedException
 	 */
-	DHTReading read() throws InterruptedException;
+	DHTReading read() ;
 
 }

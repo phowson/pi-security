@@ -45,7 +45,9 @@ public class DHT11Impl implements DHT11 {
 		GpioUtil.export(pin, GpioUtil.DIRECTION_OUT);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see net.pisecurity.pi.dht.DHT11#prepareRead()
 	 */
 	@Override
@@ -61,11 +63,13 @@ public class DHT11Impl implements DHT11 {
 		Arrays.fill(data, 0);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see net.pisecurity.pi.dht.DHT11#read()
 	 */
 	@Override
-	public DHTReading read() throws InterruptedException {
+	public DHTReading read() {
 
 		final Thread currentThread = Thread.currentThread();
 		final int priority = currentThread.getPriority();
