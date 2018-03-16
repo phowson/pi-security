@@ -4,8 +4,17 @@ import com.pi4j.wiringpi.Gpio;
 import com.pi4j.wiringpi.GpioUtil;
 
 public class DHT11 {
-	private static final int MAXTIMINGS = 85;
-	private final int[] dht11_dat = { 0, 0, 0, 0, 0 };
+
+	public static class DHTReading {
+		public float temperature;
+		public float humidity;
+
+		@Override
+		public String toString() {
+			return "[temperature=" + temperature + ", humidity=" + humidity + "]";
+		}
+
+	}
 
 	public DHT11() {
 
@@ -18,72 +27,121 @@ public class DHT11 {
 		GpioUtil.export(3, GpioUtil.DIRECTION_OUT);
 	}
 
-	public boolean getTemperature(final int pin) {
-		int laststate = Gpio.HIGH;
-		int j = 0;
-		dht11_dat[0] = dht11_dat[1] = dht11_dat[2] = dht11_dat[3] = dht11_dat[4] = 0;
+	// This is the only processor specific magic value, the maximum amount of
+	// time to
+	// spin in a loop before bailing out and considering the read a timeout.
+	// This should
+	// be a high value, but if you're running on a much faster platform than a
+	// Raspberry
+	// Pi or Beaglebone Black then it might need to be increased.
+	private static final int DHT_MAXCOUNT = 32000;
 
+	// Number of bit pulses to expect from the DHT. Note that this is 41 because
+	// the first pulse is a constant 50 microsecond pulse, with 40 pulses to
+	// represent
+	// the data afterwards.
+	private static final int DHT_PULSES = 41;
 
-		
+	public DHTReading read(int pin) {
+		// Store the count that each DHT bit pulse is low and high.
+		// Make sure array is initialized to start at zero.
+		int[] pulseCounts = new int[DHT_PULSES * 2];
+
+		// Set pin to output.
 		Gpio.pinMode(pin, Gpio.OUTPUT);
-		Gpio.digitalWrite(pin, Gpio.HIGH);
-		Gpio.delay(250);
 
+		// Set pin high for ~500 milliseconds.
+		Gpio.digitalWrite(pin, Gpio.HIGH);
+		Gpio.delay(500);
+
+		// The next calls are timing critical and care should be taken
+		// to ensure no unnecssary work is done below.
+
+		// Set pin low for ~20 milliseconds.
 		Gpio.digitalWrite(pin, Gpio.LOW);
 		Gpio.delay(20);
+
+		// Set pin at input.
 		Gpio.pinMode(pin, Gpio.INPUT);
-		for (int i = 0; i < MAXTIMINGS; i++) {
-			int counter = 0;
-			while (Gpio.digitalRead(pin) == laststate) {
-				counter++;
-				Gpio.delayMicroseconds(1);
-				if (counter == 255) {
-					break;
-				}
-			}
+		// Need a very short delay before reading pins or else value is
+		// sometimes still low.
+		for (int i = 0; i < 50; ++i) {
+		}
 
-			laststate = Gpio.digitalRead(pin);
+		// Wait for DHT to pull pin low.
+		int count = 0;
 
-			if (counter == 255) {
-				break;
-			}
-
-			/* ignore first 3 transitions */
-			if (i >= 4 && i % 2 == 0) {
-				/* shove each bit into the storage bytes */
-				dht11_dat[j / 8] <<= 1;
-				if (counter > 16) {
-					dht11_dat[j / 8] |= 1;
-				}
-				j++;
+		while (Gpio.digitalRead(pin) != 0) {
+			if (++count >= DHT_MAXCOUNT) {
+				// Timeout waiting for response.
+				return null;
 			}
 		}
-		// check we read 40 bits (8bit x 5 ) + verify checksum in the last
-		// byte
-		if (j >= 40 && checkParity()) {
-			float h = (float) ((dht11_dat[0] << 8) + dht11_dat[1]) / 10;
-			if (h > 100) {
-				h = dht11_dat[0]; // for DHT11
+
+		// Record pulse widths for the expected result bits.
+		for (int i = 0; i < DHT_PULSES * 2; i += 2) {
+			// Count how long pin is low and store in pulseCounts[i]
+			while (Gpio.digitalRead(pin) == 0) {
+				if (++pulseCounts[i] >= DHT_MAXCOUNT) {
+					// Timeout waiting for response.
+					return null;
+				}
 			}
-			float c = (float) (((dht11_dat[2] & 0x7F) << 8) + dht11_dat[3]) / 10;
-			if (c > 125) {
-				c = dht11_dat[2]; // for DHT11
+			// Count how long pin is high and store in pulseCounts[i+1]
+			while (Gpio.digitalRead(pin) != 0) {
+				if (++pulseCounts[i + 1] >= DHT_MAXCOUNT) {
+					// Timeout waiting for response.
+					return null;
+				}
 			}
-			if ((dht11_dat[2] & 0x80) != 0) {
-				c = -c;
+		}
+
+		// Done with timing critical code, now interpret the results.
+
+		// Drop back to normal priority.
+
+		// Compute the average low pulse width to use as a 50 microsecond
+		// reference threshold.
+		// Ignore the first two readings because they are a constant 80
+		// microsecond pulse.
+		int threshold = 0;
+		for (int i = 2; i < DHT_PULSES * 2; i += 2) {
+			threshold += pulseCounts[i];
+		}
+		threshold /= DHT_PULSES - 1;
+
+		// Interpret each high pulse as a 0 or 1 by comparing it to the 50us
+		// reference.
+		// If the count is less than 50us it must be a ~28us 0 pulse, and if
+		// it's higher
+		// then it must be a ~70us 1 pulse.
+		int[] data = new int[5];
+		for (int i = 3; i < DHT_PULSES * 2; i += 2) {
+			int index = (i - 3) / 16;
+			data[index] <<= 1;
+			if (pulseCounts[i] >= threshold) {
+				// One bit for long pulse.
+				data[index] |= 1;
 			}
-			final float f = c * 1.8f + 32;
-			System.out.println("Humidity = " + h + " Temperature = " + c + "(" + f + "f)");
-			return true;
+			// Else zero bit for short pulse.
+		}
+
+		// Useful debug info:
+		// printf("Data: 0x%x 0x%x 0x%x 0x%x 0x%x\n", data[0], data[1], data[2],
+		// data[3], data[4]);
+
+		// Verify checksum of received data.
+		if (data[4] == ((data[0] + data[1] + data[2] + data[3]) & 0xFF)) {
+
+			DHTReading out = new DHTReading();
+			// Get humidity and temp for DHT11 sensor.
+			// oddly bytes 1 and 3 are only used on other models
+			out.humidity = data[0];
+			out.temperature = data[2];
+			return out;
 		} else {
-
-			return false;
+			return null;
 		}
-
-	}
-
-	private boolean checkParity() {
-		return dht11_dat[4] == (dht11_dat[0] + dht11_dat[1] + dht11_dat[2] + dht11_dat[3] & 0xFF);
 	}
 
 	public static void main(final String ars[]) throws Exception {
@@ -91,10 +149,8 @@ public class DHT11 {
 		final DHT11 dht = new DHT11();
 
 		while (true) {
-
-			dht.getTemperature(15);
 			Thread.sleep(2000);
-
+			System.out.println(dht.read(16));
 		}
 
 	}
