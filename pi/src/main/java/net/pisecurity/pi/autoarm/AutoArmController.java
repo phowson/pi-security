@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import net.pisecurity.model.AutoArmConfig;
 import net.pisecurity.model.Event;
+import net.pisecurity.model.EventAlertType;
 import net.pisecurity.model.EventType;
 import net.pisecurity.model.MobileDeviceConfig;
 import net.pisecurity.pi.monitoring.AlertState;
@@ -36,14 +37,17 @@ public class AutoArmController implements Runnable {
 	private EventListener eventListener;
 	private ZoneId zone;
 	private InternetStatus internetStatus;
+	private String deviceId;
 
 	public AutoArmController(InternetStatus internetStatus, ScheduledExecutorService mainExecutor,
-			ScheduledExecutorService pingExecutor, AlertState alertState, EventListener eventListener) {
+			ScheduledExecutorService pingExecutor, AlertState alertState, EventListener eventListener,
+			String deviceId) {
 		this.mainExecutor = mainExecutor;
 		this.pingExecutor = pingExecutor;
 		this.alertState = alertState;
 		this.eventListener = eventListener;
 		this.internetStatus = internetStatus;
+		this.deviceId = deviceId;
 		devicesLastSeenAt = System.currentTimeMillis();
 	}
 
@@ -120,6 +124,7 @@ public class AutoArmController implements Runnable {
 	private void autoDisarm(String deviceName) {
 		if (!shutdown) {
 			mainExecutor.execute(new Runnable() {
+
 				@Override
 				public void run() {
 
@@ -127,7 +132,8 @@ public class AutoArmController implements Runnable {
 						logger.info("Automatically disarming due to device : " + deviceName);
 						alertState.armed = false;
 						eventListener.onEvent(new Event(System.currentTimeMillis(), -1, "System automatically disarmed",
-								EventType.SYSTEM_AUTO_ARMED, "Disarmed, device " + deviceName + " seen"));
+								EventType.SYSTEM_AUTO_ARMED, "Disarmed, device " + deviceName + " seen", deviceId,
+								EventAlertType.NONE, false));
 					}
 
 				}
@@ -176,7 +182,8 @@ public class AutoArmController implements Runnable {
 
 						eventListener.onEvent(new Event(System.currentTimeMillis(), -1, "System automatically armed",
 								EventType.SYSTEM_AUTO_ARMED,
-								"Armed due to no devices being seen for " + d / 1000 + " seconds"));
+								"Armed due to no devices being seen for " + d / 1000 + " seconds", deviceId,
+								EventAlertType.NONE, false));
 					}
 
 				}

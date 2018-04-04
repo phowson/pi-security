@@ -4,7 +4,7 @@ import net.pisecurity.twillio.ServerConfig;
 import net.pisecurity.twillio.TwilioAccountDetails;
 
 public class AppConfig {
-	public TwilioAccountDetails twilioAccountDetails;
+	public String twilioConfigFile;
 	public ServerConfig serverConfig;
 	public FirebaseConfig firebaseConfig;
 	public String locationId;

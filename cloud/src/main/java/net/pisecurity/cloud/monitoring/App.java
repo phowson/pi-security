@@ -27,6 +27,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import net.pisecurity.twillio.TwilioAccountDetails;
 import net.pisecurity.twillio.TwilioVoiceAlertService;
 import net.pisecurity.util.DoNothingRunnable;
 import net.pisecurity.util.NamedThreadFactory;
@@ -61,11 +62,17 @@ public class App implements UncaughtExceptionHandler, java.util.concurrent.Rejec
 			appConfig = gson.fromJson(reader, AppConfig.class);
 		}
 
+		TwilioAccountDetails twilioAccountDetails;
+		logger.info("Loading Twilio config from : " + appConfig.twilioConfigFile);
+		try (FileReader reader = new FileReader(new File(appConfig.twilioConfigFile))) {
+			twilioAccountDetails = gson.fromJson(reader, TwilioAccountDetails.class);
+		}
+
 		firebaseApp = appConfig.firebaseConfig.createApp();
 		logger.info("Firebase app created");
 		database = FirebaseDatabase.getInstance(firebaseApp).getReference();
 
-		voiceAlertService = new TwilioVoiceAlertService(appConfig.twilioAccountDetails, appConfig.serverConfig);
+		voiceAlertService = new TwilioVoiceAlertService(twilioAccountDetails, appConfig.serverConfig);
 		logger.info("Starting Twilio alerting service...");
 		voiceAlertService.start();
 

@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import com.google.firebase.database.DatabaseReference;
 
 import net.pisecurity.model.Event;
+import net.pisecurity.model.EventAlertType;
 import net.pisecurity.model.EventType;
 import net.pisecurity.model.RequestedState;
 import net.pisecurity.pi.monitoring.AlarmBellController;
@@ -22,13 +23,17 @@ public class CommandHandler {
 	private AlarmBellController alarmBellController;
 	private PersistenceService persistenceService;
 
+	private String deviceId;
+
 	public CommandHandler(AlertState alertState, Executor mainExecutor, AlarmBellController alarmBellController,
-			net.pisecurity.pi.monitoring.EventListener listener, PersistenceService persistenceService) {
+			net.pisecurity.pi.monitoring.EventListener listener, PersistenceService persistenceService,
+			String deviceId) {
 		this.alertState = alertState;
 		this.mainExecutor = mainExecutor;
 		this.listener = listener;
 		this.alarmBellController = alarmBellController;
 		this.persistenceService = persistenceService;
+		this.deviceId = deviceId;
 	}
 
 	public void onCommand(RequestedState request) {
@@ -44,7 +49,7 @@ public class CommandHandler {
 					case ARM:
 						alertState.armed = true;
 						listener.onEvent(new Event(System.currentTimeMillis(), -1, "System manually armed",
-								EventType.SYSTEM_MANUAL_ARMED, "Armed manually"));
+								EventType.SYSTEM_MANUAL_ARMED, "Armed manually", deviceId, EventAlertType.NONE, false));
 
 						break;
 
@@ -52,7 +57,8 @@ public class CommandHandler {
 						alertState.armed = false;
 						alarmBellController.off();
 						listener.onEvent(new Event(System.currentTimeMillis(), -1, "System manually disarmed",
-								EventType.SYSTEM_MANUAL_DISARMED, "Disrmed manually"));
+								EventType.SYSTEM_MANUAL_DISARMED, "Disrmed manually", deviceId, EventAlertType.NONE,
+								false));
 						break;
 
 					case RESET_ALARM:
@@ -61,7 +67,7 @@ public class CommandHandler {
 						alertState.firstActivityTs = 0;
 
 						listener.onEvent(new Event(System.currentTimeMillis(), -1, "Alarm reset manually",
-								EventType.ALARMRESET, "Alarm reset manually"));
+								EventType.ALARMRESET, "Alarm reset manually", deviceId, EventAlertType.NONE, false));
 						break;
 
 					case TRIGGER_ALARM:
@@ -69,7 +75,8 @@ public class CommandHandler {
 						alertState.alarmActive = true;
 
 						listener.onEvent(new Event(System.currentTimeMillis(), -1, "Alarm triggered manually",
-								EventType.ALARMTRIGGERED_MANUAL, "Alarm triggered manually"));
+								EventType.ALARMTRIGGERED_MANUAL, "Alarm triggered manually", deviceId,
+								EventAlertType.IMMEDIATE_ALERT, true));
 						break;
 
 					}

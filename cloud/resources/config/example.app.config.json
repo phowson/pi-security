@@ -7,5 +7,7 @@
 		"port": "8080",
 		"path": "/test/*",
 		"myUrl": "http://86.181.62.37:8080/test"
-	}
+	},
+	"locationId" : "test-1",
+	"twilioConfigFile":"./resources/config/twillio.prod.json"
 }

@@ -17,12 +17,14 @@ public class DHTMonitoringService implements Runnable {
 
 	private DHT11 dht11;
 	private String location;
+	private String deviceId;
 
-	public DHTMonitoringService(String location, PersistenceService persistenceService, DHT11 dht11) {
+	public DHTMonitoringService(String location, PersistenceService persistenceService, DHT11 dht11, String deviceId) {
 		super();
 		this.persistenceService = persistenceService;
 		this.dht11 = dht11;
 		this.location = location;
+		this.deviceId = deviceId;
 
 		thread = new Thread(this);
 		thread.setName("DHTMonitoringThread");
@@ -67,6 +69,7 @@ public class DHTMonitoringService implements Runnable {
 						obs.humidityPercent = sumHumidity / count;
 						obs.temparatureCelcius = sumTemp / count;
 						obs.location = this.location;
+						obs.deviceId = this.deviceId;
 
 						if (logger.isDebugEnabled()) {
 							logger.debug("Saving : " + obs);

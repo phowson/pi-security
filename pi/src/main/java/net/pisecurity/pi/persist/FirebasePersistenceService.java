@@ -17,6 +17,7 @@ import com.google.firebase.database.Transaction;
 
 import net.pisecurity.model.DHTObservation;
 import net.pisecurity.model.Event;
+import net.pisecurity.model.EventAlertType;
 import net.pisecurity.model.EventType;
 import net.pisecurity.model.Heartbeat;
 import net.pisecurity.model.RequestedState;
@@ -41,13 +42,16 @@ public class FirebasePersistenceService
 
 	private long lastHeartbeatPersisted;
 	private long lastHbTime;
+	private String deviceId;
 
 	public FirebasePersistenceService(DatabaseReference database, DatabaseReference eventsRef,
-			DatabaseReference heartbeatRef, DatabaseReference requestedStateRef, DatabaseReference dhtRef) {
+			DatabaseReference heartbeatRef, DatabaseReference requestedStateRef, DatabaseReference dhtRef,
+			String deviceId) {
 		this.eventsRef = eventsRef;
 		this.heartbeatRef = heartbeatRef;
 		this.requestedStateRef = requestedStateRef;
 		this.dhtRef = dhtRef;
+		this.deviceId = deviceId;
 		retryScheduler = new ScheduledThreadPoolExecutor(1, new NamedThreadFactory("Firebase Retry", this, false));
 		retryScheduler.scheduleWithFixedDelay(this, PERSIST_TIMEOUT, PERSIST_TIMEOUT, TimeUnit.MILLISECONDS);
 	}
@@ -241,7 +245,8 @@ public class FirebasePersistenceService
 				et = EventType.INTERNET_OFFLINE;
 			}
 
-			listener.onEvent(new Event(System.currentTimeMillis(), 1, label, et, label));
+			listener.onEvent(new Event(System.currentTimeMillis(), 1, label, et, label, this.deviceId,
+					EventAlertType.NONE, true));
 		}
 
 	}
@@ -256,7 +261,7 @@ public class FirebasePersistenceService
 		try {
 			synchronized (this) {
 				if (lastHeartbeatPersisted != 0) {
-					long delay = lastHbTime- lastHeartbeatPersisted;
+					long delay = lastHbTime - lastHeartbeatPersisted;
 					if (delay > PERSIST_TIMEOUT) {
 						onConnectedChanged(false);
 					}

@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -28,6 +29,7 @@ import net.pisecurity.example.ExampleConfigFactory;
 import net.pisecurity.model.AlarmBellConfig;
 import net.pisecurity.model.AutoArmConfig;
 import net.pisecurity.model.Event;
+import net.pisecurity.model.EventAlertType;
 import net.pisecurity.model.EventType;
 import net.pisecurity.model.Heartbeat;
 import net.pisecurity.model.MonitoringConfig;
@@ -100,17 +102,20 @@ public class App implements UncaughtExceptionHandler, Runnable {
 		database = FirebaseDatabase.getInstance(firebaseApp).getReference();
 
 		locationRef = database.child(appConfig.locationId);
-		monitoringConfigRef = locationRef.child("monitoringConfig");
-		autoArmConfigRef = locationRef.child("autoArmConfig");
-		alarmBellConfigRef = locationRef.child("alarmBellConfig");
-		commandRef = locationRef.child("command");
+
+		DatabaseReference deviceConfigRef = locationRef.child("device-config").child(appConfig.deviceId);
+		monitoringConfigRef = deviceConfigRef.child("monitoringConfig");
+		autoArmConfigRef = deviceConfigRef.child("autoArmConfig");
+		alarmBellConfigRef = deviceConfigRef.child("alarmBellConfig");
+		commandRef = deviceConfigRef.child("command");
+
+		hbRef = locationRef.child("heartbeat").child(appConfig.deviceId);
 
 		eventsRef = locationRef.child("events");
-		hbRef = locationRef.child("heartbeat");
 		dhtRef = locationRef.child("humidityTemperature");
 
 		FirebasePersistenceService persistenceService = new FirebasePersistenceService(database, eventsRef, hbRef,
-				commandRef, dhtRef);
+				commandRef, dhtRef, appConfig.deviceId);
 		this.internetStatus = persistenceService;
 		this.persistenceService = persistenceService;
 		this.eventListener = new PersistingEventListener(persistenceService);
@@ -127,8 +132,9 @@ public class App implements UncaughtExceptionHandler, Runnable {
 			saveConfig(monitoringConfigRef, config);
 		} else {
 
-			eventListener.onEvent(new Event(System.currentTimeMillis(), -1, "Monitoring reconfigured",
-					EventType.CONFIG_CHANGED, "Monitoring reconfigured"));
+			eventListener.onEvent(
+					new Event(System.currentTimeMillis(), -1, "Monitoring reconfigured", EventType.CONFIG_CHANGED,
+							"Monitoring reconfigured", appConfig.deviceId, EventAlertType.NONE, false));
 			configureMonitoring(config);
 
 		}
@@ -170,20 +176,57 @@ public class App implements UncaughtExceptionHandler, Runnable {
 
 		if (config.dhtSensorEnabled) {
 			dhtService = new DHTMonitoringService(config.dhtSensorLocationName, persistenceService,
-					dht11Factory.create(config.dhtSensorPin));
+					dht11Factory.create(config.dhtSensorPin), this.appConfig.deviceId);
 			logger.info("DHT service configured");
 		} else {
 			dhtService = null;
 		}
 
 		monitoringService = new MonitoringService(config, ioInterface, alertState, alarmBellController, eventListener,
-				internetStatus, mainExecutor);
+				internetStatus, mainExecutor, appConfig.deviceId);
 		logger.info("Monitoring service configured");
 
 		if (dhtService != null) {
 			dhtService.start();
 		}
-		configured = true;
+
+		if (!configured) {
+			eventsRef.addChildEventListener(new ChildEventListener() {
+
+				@Override
+				public void onChildRemoved(DataSnapshot snapshot) {
+				}
+
+				@Override
+				public void onChildMoved(DataSnapshot snapshot, String previousChildName) {
+				}
+
+				@Override
+				public void onChildChanged(DataSnapshot snapshot, String previousChildName) {
+				}
+
+				@Override
+				public void onChildAdded(DataSnapshot snapshot, String previousChildName) {
+					mainExecutor.execute(new Runnable() {
+						public void run() {
+							try {
+								Event event = snapshot.getValue(Event.class);
+								App.this.monitoringService.onEvent(event);
+							} catch (Exception e) {
+								logger.error("Unexpected exception notifying of firebase event", e);
+							}
+						}
+					});
+
+				}
+
+				@Override
+				public void onCancelled(DatabaseError error) {
+
+				}
+			});
+			configured = true;
+		}
 	}
 
 	private void onMonitoringConfigFetchFailed(DatabaseError error) {
@@ -216,7 +259,7 @@ public class App implements UncaughtExceptionHandler, Runnable {
 		} else {
 			this.autoArmController.configure(config);
 			eventListener.onEvent(new Event(System.currentTimeMillis(), -1, "Auto arm reconfigured",
-					EventType.CONFIG_CHANGED, "Auto arm reconfigured"));
+					EventType.CONFIG_CHANGED, "Auto arm reconfigured", appConfig.deviceId, EventAlertType.NONE, false));
 		}
 	}
 
@@ -227,8 +270,9 @@ public class App implements UncaughtExceptionHandler, Runnable {
 			saveConfig(alarmBellConfigRef, config);
 		} else {
 
-			eventListener.onEvent(new Event(System.currentTimeMillis(), -1, "Alarm bell reconfigured",
-					EventType.CONFIG_CHANGED, "Alarm bell reconfigured"));
+			eventListener.onEvent(
+					new Event(System.currentTimeMillis(), -1, "Alarm bell reconfigured", EventType.CONFIG_CHANGED,
+							"Alarm bell reconfigured", appConfig.deviceId, EventAlertType.NONE, false));
 
 			this.alarmBellController.configure(config, mainExecutor);
 		}
@@ -256,10 +300,10 @@ public class App implements UncaughtExceptionHandler, Runnable {
 		mainExecutor.execute(DoNothingRunnable.INSTANCE);
 
 		this.autoArmController = new AutoArmController(this.internetStatus, mainExecutor, pingExecutor, alertState,
-				eventListener);
+				eventListener, this.appConfig.deviceId);
 
 		this.commandHandler = new CommandHandler(alertState, mainExecutor, alarmBellController, eventListener,
-				persistenceService);
+				persistenceService, this.appConfig.deviceId);
 
 		commandRef.addValueEventListener(new ValueEventListener() {
 			@Override
@@ -408,12 +452,14 @@ public class App implements UncaughtExceptionHandler, Runnable {
 			public void run() {
 				eventListener
 						.onEvent(new Event(System.currentTimeMillis(), -1, "System shutdown", EventType.SYSTEM_SHUTDOWN,
-								"System orderly shutdown at timestamp : " + System.currentTimeMillis()));
+								"System orderly shutdown at timestamp : " + System.currentTimeMillis(),
+								appConfig.deviceId, EventAlertType.NONE, false));
 			}
 		});
 
 		eventListener.onEvent(new Event(System.currentTimeMillis(), -1, "System start", EventType.SYSTEM_START,
-				"System startup at timestamp : " + System.currentTimeMillis()));
+				"System startup at timestamp : " + System.currentTimeMillis(), appConfig.deviceId, EventAlertType.NONE,
+				false));
 
 	}
 

@@ -5,5 +5,5 @@
 		"databaseURL": "https://pisecurity-72796.firebaseio.com",
 		"firebaseConfigFile": "./resources/config/example-firebase-config.json"
 	},
-	"deviceId": "alarm-embedded"
+	"deviceId": "alarm-test"
 }
