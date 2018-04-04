@@ -176,7 +176,7 @@ public class MonitoringService implements IOActivityListener, ExternalEventListe
 	public void onEvent(Event event) {
 		if (!event.deviceId.equals(this.deviceId) && event.alertType != EventAlertType.NONE) {
 
-			logger.info("Saw " + event + " from another device");
+			logger.info("Saw alertable event " + event + " from another device");
 			if (alertState.firstActivityTs == 0) {
 				alertState.firstActivityTs = System.currentTimeMillis();
 			}

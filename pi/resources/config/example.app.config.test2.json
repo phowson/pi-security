@@ -1,0 +1,9 @@
+{
+	"locationId": "test-1",
+	"heartBeatIntervalMillis": "10000",
+	"firebaseConfig": {
+		"databaseURL": "https://pisecurity-72796.firebaseio.com",
+		"firebaseConfigFile": "./resources/config/example-firebase-config.json"
+	},
+	"deviceId": "alarm-test2"
+}

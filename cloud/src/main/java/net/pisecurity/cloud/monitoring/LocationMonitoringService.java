@@ -243,6 +243,7 @@ public class LocationMonitoringService implements Runnable, CallStatusListener {
 	protected synchronized void sendBatch(boolean force) {
 
 		if (force || System.currentTimeMillis() - batchStart >= monitoringConfig.alarmDelaySeconds * 1000) {
+			logger.info("Sending alert batch : " + events);
 			notificationService.notifyEvents(notificationConfig, events);
 			events.clear();
 		}

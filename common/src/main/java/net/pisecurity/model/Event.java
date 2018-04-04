@@ -55,17 +55,22 @@ public class Event {
 		sb.append(alertType);
 		sb.append("\", ");
 
-
 		sb.append("\"notify\" : \"");
 		sb.append(notify);
 		sb.append("\", ");
-		
-		
+
 		sb.append("\"comment\" : \"");
 		sb.append(comment);
 		sb.append("\" } ");
 
 		return sb.toString();
+	}
+
+	@Override
+	public String toString() {
+		return "Event [timestamp=" + timestamp + ", gpioPin=" + gpioPin + ", label=" + label + ", type=" + type
+				+ ", comment=" + comment + ", deviceId=" + deviceId + ", alertType=" + alertType + ", notify=" + notify
+				+ "]";
 	}
 
 }
