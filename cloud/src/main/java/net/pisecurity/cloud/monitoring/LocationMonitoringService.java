@@ -255,12 +255,13 @@ public class LocationMonitoringService implements Runnable {
 
 	protected synchronized void sendBatch(boolean force) {
 
-		if (force || System.currentTimeMillis() - batchStart >= monitoringConfig.alarmDelaySeconds * 1000) {
+		if (force || (System.currentTimeMillis() - batchStart >= monitoringConfig.alarmDelaySeconds * 1000 && armed)) {
 			logger.info("Sending alert batch : " + events);
 			notificationService.notifyEvents(notificationConfig, events);
 			batchingEvents = false;
 			events.clear();
 		}
+
 	}
 
 	protected synchronized void onHeartbeatChanged(DataSnapshot snapshot) {
@@ -277,9 +278,12 @@ public class LocationMonitoringService implements Runnable {
 				logger.error("Location " + location + " has no heartbeat");
 			}
 		}
-		if (this.armed!=anyArmed) {
+		if (this.armed != anyArmed) {
 			this.armed = anyArmed;
 			logger.info("System armed status is now : " + armed);
+			events.clear();
+			batchingEvents = false;
+			batchStart = 0;
 		}
 	}
 
