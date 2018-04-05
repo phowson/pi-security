@@ -279,7 +279,7 @@ public class LocationMonitoringService implements Runnable {
 		}
 		if (this.armed!=anyArmed) {
 			this.armed = anyArmed;
-			logger.info("System is now : " + armed);
+			logger.info("System armed status is now : " + armed);
 		}
 	}
 
