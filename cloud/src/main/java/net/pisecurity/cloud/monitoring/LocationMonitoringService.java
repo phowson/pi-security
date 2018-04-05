@@ -277,7 +277,10 @@ public class LocationMonitoringService implements Runnable {
 				logger.error("Location " + location + " has no heartbeat");
 			}
 		}
-		this.armed = anyArmed;
+		if (this.armed!=anyArmed) {
+			this.armed = anyArmed;
+			logger.info("System is now : " + armed);
+		}
 	}
 
 	private void saveConfig(DatabaseReference configRef, Object config) {
