@@ -28,6 +28,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import net.pisecurity.twillio.TwilioAccountDetails;
+import net.pisecurity.twillio.TwilioSMS;
 import net.pisecurity.twillio.TwilioVoiceAlertService;
 import net.pisecurity.util.DoNothingRunnable;
 import net.pisecurity.util.NamedThreadFactory;
@@ -77,9 +78,10 @@ public class App implements UncaughtExceptionHandler, java.util.concurrent.Rejec
 		voiceAlertService.start();
 
 		Executor executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("TwillioThread", this, false));
-		notificationService = new NotificationService(voiceAlertService, executor);
+		notificationService = new NotificationService(voiceAlertService, new TwilioSMS(twilioAccountDetails), executor,
+				database.child("calls"));
 
-		database.addChildEventListener(new ChildEventListener() {
+		database.child("locations").addChildEventListener(new ChildEventListener() {
 
 			@Override
 			public void onChildRemoved(DataSnapshot snapshot) {

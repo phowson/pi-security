@@ -28,14 +28,14 @@ import net.pisecurity.model.MonitoredPinConfig;
 import net.pisecurity.model.MonitoringConfig;
 import net.pisecurity.twillio.CallStatusListener;
 
-public class LocationMonitoringService implements Runnable, CallStatusListener {
+public class LocationMonitoringService implements Runnable {
 
 	private static final Logger logger = LogManager.getLogger(LocationMonitoringService.class);
 
 	private ScheduledExecutorService mainExecutor;
 	private DatabaseReference heartbeatRef;
 	private DatabaseReference monitoringConfigRef;
-	private DatabaseReference callsRef;
+
 	private DatabaseReference configRef;
 	private long lastHeartbeatTime;
 	private CloudMonitoringConfig monitoringConfig;
@@ -60,6 +60,10 @@ public class LocationMonitoringService implements Runnable, CallStatusListener {
 
 	private NotificationService notificationService;
 
+	private long startupTime;
+
+	private boolean heartbeatAlerted;
+
 	public LocationMonitoringService(String locationId, ScheduledExecutorService mainExecutor, AppConfig appConfig,
 			DatabaseReference locationRef, NotificationService notificationService) {
 		this.location = locationId;
@@ -67,10 +71,11 @@ public class LocationMonitoringService implements Runnable, CallStatusListener {
 		this.notificationService = notificationService;
 		monitoringConfigRef = locationRef.child("cloudMonitoringConfig");
 		heartbeatRef = locationRef.child("heartbeat");
-		callsRef = locationRef.child("calls");
 		configRef = locationRef.child("notificationConfig");
 
 		eventsRef = locationRef.child("events");
+
+		startupTime = System.currentTimeMillis();
 
 		lastHeartbeatTime = System.currentTimeMillis();
 
@@ -141,7 +146,7 @@ public class LocationMonitoringService implements Runnable, CallStatusListener {
 	private void subscribeEvents() {
 		if (!eventsSubscribed && this.monitoringConfig != null && this.notificationConfig != null) {
 
-			eventsRef.addChildEventListener(new ChildEventListener() {
+			eventsRef.orderByChild("timestamp").startAt(startupTime).addChildEventListener(new ChildEventListener() {
 
 				@Override
 				public void onChildRemoved(DataSnapshot snapshot) {
@@ -160,6 +165,7 @@ public class LocationMonitoringService implements Runnable, CallStatusListener {
 
 				@Override
 				public void onChildAdded(DataSnapshot snapshot, String previousChildName) {
+
 					Event event = snapshot.getValue(Event.class);
 					onNewEvent(event);
 
@@ -175,45 +181,52 @@ public class LocationMonitoringService implements Runnable, CallStatusListener {
 
 	protected void onNewEvent(Event event) {
 
-		switch (event.type) {
-		case ALARMTRIGGERED_AUTO:
-			events.add(event);
-			startBatch();
+		if (event.timestamp > startupTime) {
 
-			break;
+			logger.info("Saw event : " + event);
+			switch (event.type) {
+			case ALARMTRIGGERED_AUTO:
+				events.add(event);
+				startBatch();
 
-		case SYSTEM_AUTO_ARMED:
-			notifyAutoArm();
-			break;
+				break;
 
-		case SYSTEM_AUTO_DISARMED:
-			notifyAutoDisarm();
-			break;
+			case SYSTEM_AUTO_ARMED:
+				notifyAutoArm();
+				break;
 
-		case ACTIVITY:
-			if (armed) {
+			case SYSTEM_AUTO_DISARMED:
+				notifyAutoDisarm();
+				break;
 
-				if (event.alertType != EventAlertType.NONE) {
-					events.add(event);
-					startBatch();
-					if (event.alertType == EventAlertType.IMMEDIATE_ALERT) {
-						sendBatch(true);
+			case ACTIVITY:
+				if (armed) {
+
+					if (event.alertType != EventAlertType.NONE) {
+						events.add(event);
+						startBatch();
+						if (event.alertType == EventAlertType.IMMEDIATE_ALERT) {
+							sendBatch(true);
+						}
+					} else if (event.notify) {
+						// Not alertable, but still notifyable.
+						reportPinActivity(event);
 					}
+
 				}
 
-				if (event.notify) {
-					reportPinActivity(event);
-				}
-
+			default:
 			}
 
-		default:
+		} else {
+			logger.info("Discarded stale event :" + event);
 		}
 
 	}
 
 	private void startBatch() {
 		if (!batchingEvents) {
+			logger.info("Starting batching of events");
 			batchingEvents = true;
 			batchStart = System.currentTimeMillis();
 			mainExecutor.schedule(new Runnable() {
@@ -245,6 +258,7 @@ public class LocationMonitoringService implements Runnable, CallStatusListener {
 		if (force || System.currentTimeMillis() - batchStart >= monitoringConfig.alarmDelaySeconds * 1000) {
 			logger.info("Sending alert batch : " + events);
 			notificationService.notifyEvents(notificationConfig, events);
+			batchingEvents = false;
 			events.clear();
 		}
 	}
@@ -311,19 +325,32 @@ public class LocationMonitoringService implements Runnable, CallStatusListener {
 
 	@Override
 	public synchronized void run() {
-		// TODO Auto-generated method stub
 
-	}
+		try {
+			if (this.monitoringConfig != null) {
+				long d = System.currentTimeMillis() - lastHeartbeatTime;
 
-	@Override
-	public synchronized void onCallMade(String number) {
-		// TODO Auto-generated method stub
+				if (d / 1000 > this.monitoringConfig.alarmDelaySeconds) {
 
-	}
+					if (!heartbeatAlerted) {
+						logger.info("Saw heartbeat timeout, " + (d / 1000) + " seconds without any heartbeat activity");
 
-	@Override
-	public synchronized void onCallComplete(boolean success, String answererNumber) {
-		// TODO Auto-generated method stub
+						notificationService.notifyHeartbeatTimeout(this.location, notificationConfig);
+
+						heartbeatAlerted = true;
+					}
+
+				} else {
+					if (heartbeatAlerted) {
+						logger.info("Heartbeat now OK");
+						heartbeatAlerted = false;
+					}
+				}
+
+			}
+		} catch (Exception e) {
+			logger.error("Unexpected exception while checking heartbeat", e);
+		}
 
 	}
 

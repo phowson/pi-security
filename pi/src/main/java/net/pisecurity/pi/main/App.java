@@ -99,7 +99,7 @@ public class App implements UncaughtExceptionHandler, Runnable {
 
 		firebaseApp = appConfig.firebaseConfig.createApp();
 		logger.info("Firebase app created");
-		database = FirebaseDatabase.getInstance(firebaseApp).getReference();
+		database = FirebaseDatabase.getInstance(firebaseApp).getReference().child("locations");
 
 		locationRef = database.child(appConfig.locationId);
 
