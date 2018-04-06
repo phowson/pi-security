@@ -23,3 +23,7 @@ hs_err_pid*
 /bin/
 /target/
 /ui/node_modules
+/ui/.settings
+/.settings
+/cloud/.settings
+/common/.settings
