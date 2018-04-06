@@ -109,9 +109,7 @@ public class MonitoringService implements IOActivityListener, ExternalEventListe
 	}
 
 	protected void doAlarmCheckAndRaise(long now, MonitoredPinConfig cfg, int pin) {
-		if (alertState.armed && !alertState.alarmActive &&
-		// Always auto trigger if no internet
-				(config.autoTriggerAlarm || !internetStatus.isConnected()) && cfg.raisesAlert) {
+		if (shouldTrigger(cfg)&& cfg.raisesAlert) {
 			if (alertState.firstActivityTs == 0) {
 				alertState.firstActivityTs = now;
 			}
@@ -136,6 +134,12 @@ public class MonitoringService implements IOActivityListener, ExternalEventListe
 			}
 
 		}
+	}
+
+	private boolean shouldTrigger(MonitoredPinConfig cfg) {
+		return alertState.armed && !alertState.alarmActive &&
+		// Always auto trigger if no internet
+				(config.autoTriggerAlarm || !internetStatus.isConnected()) ;
 	}
 
 	protected void recheckAlarmState() {
@@ -177,6 +181,9 @@ public class MonitoringService implements IOActivityListener, ExternalEventListe
 		if (!event.deviceId.equals(this.deviceId) && event.alertType != EventAlertType.NONE) {
 
 			logger.info("Saw alertable event " + event + " from another device");
+			
+			
+			
 			if (alertState.firstActivityTs == 0) {
 				alertState.firstActivityTs = System.currentTimeMillis();
 			}

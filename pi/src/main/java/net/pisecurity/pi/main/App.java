@@ -82,6 +82,8 @@ public class App implements UncaughtExceptionHandler, Runnable {
 	private DatabaseReference dhtRef;
 	private DHT11Factory dht11Factory;
 	private DHTMonitoringService dhtService;
+	
+	private long startupTime;
 
 	public App(String configFileName, IOInterface ioInterface, AlarmBellController alarmBellController,
 			DHT11Factory dht11Factory) throws FileNotFoundException, IOException {
@@ -120,6 +122,9 @@ public class App implements UncaughtExceptionHandler, Runnable {
 		this.persistenceService = persistenceService;
 		this.eventListener = new PersistingEventListener(persistenceService);
 		persistenceService.setListener(eventListener);
+		
+		startupTime = System.currentTimeMillis();
+		
 	}
 
 	protected void onMonitoringConfigChange(DataSnapshot snapshot) {
@@ -191,7 +196,7 @@ public class App implements UncaughtExceptionHandler, Runnable {
 		}
 
 		if (!configured) {
-			eventsRef.addChildEventListener(new ChildEventListener() {
+			eventsRef.orderByChild("timestamp").startAt(startupTime).addChildEventListener(new ChildEventListener() {
 
 				@Override
 				public void onChildRemoved(DataSnapshot snapshot) {
