@@ -15,8 +15,7 @@ class LocationList extends React.Component {
 
   render() {
     let l = this.getLocations();
-    console.log("In location list");
-    console.log(l);
+
     return (
       <table>
         <thead>
@@ -62,7 +61,6 @@ class LocationsPage extends React.Component {
 
   componentWillUnmount() {
     this._mounted = false;
-    console.log("Unmounting for some reason")
   }
 
 
@@ -84,12 +82,9 @@ class LocationsPage extends React.Component {
         });
 
 
-        console.log("Setting state to the following");
-        console.log(locations);
         this.setState({
           locations: locations
         });
-        console.log("Expecting that to cause a repaint?")
 
       }
     });

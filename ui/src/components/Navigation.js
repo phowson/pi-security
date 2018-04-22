@@ -1,9 +1,10 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import {Route, Link,  withRouter } from 'react-router-dom';
 
 import * as routes from '../constants/routes';
 import AuthUserContext from './AuthUserContext';
 import SignOutButton from './SignOut';
+
 import {
   Collapse,
   Navbar,
@@ -18,49 +19,102 @@ import {
   DropdownItem } from 'reactstrap';
 
 
-  const Navigation = () =>
+const LocationsSideNav = () =>
+<ul className="navbar-nav navbar-sidenav" id="exampleAccordion">
+  <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Dashboard">
+    <Link className="nav-link" to= "index.html">
+      <i className="fa fa-fw fa-dashboard"></i>
+      <span className="nav-link-text">Activity</span>
+    </Link>
+  </li>
+  <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Charts">
+    <Link className="nav-link" to= "charts.html">
+      <i className="fa fa-fw fa-area-chart"></i>
+      <span className="nav-link-text">Control</span>
+    </Link>
+  </li>
+  <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Charts">
+    <Link className="nav-link" to= "charts.html">
+      <i className="fa fa-fw fa-area-chart"></i>
+      <span className="nav-link-text">Statistics</span>
+    </Link>
+  </li>
 
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
-    <NavbarBrand href="/">Pi Security</NavbarBrand>
+  <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Charts">
+    <Link className="nav-link" to= "charts.html">
+      <i className="fa fa-fw fa-area-chart"></i>
+      <span className="nav-link-text">Settings</span>
+    </Link>
+  </li>
+
+</ul>
 
 
+class BootstrapNavigation extends React.Component {
+  constructor(props) {
+    super(props);
 
-    <AuthUserContext.Consumer>
-      {authUser => authUser
-        ? <NavigationAuth />
-      : <NavigationNonAuth />
+    this.toggle = this.toggle.bind(this);
+    this.fold = this.fold.bind(this);
+    this.state = {
+      isOpen: false
+    };
   }
-</AuthUserContext.Consumer>
+
+
+  fold() {
+    console.log("Fold")
+
+    this.setState({
+      isOpen: false
+    });
+
+  }
+
+  toggle() {
+
+    this.setState({
+      isOpen: !this.state.isOpen
+    });
+  }
+  render() {
+
+    return <nav className="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
+      <Link className="navbar-brand" to= "/">Pi Security</Link>
+
+      <NavbarToggler onClick={this.toggle} />
+
+      <Collapse isOpen={this.state.isOpen} navbar>
+        <AuthUserContext.Consumer>
+          {authUser => authUser
+            ? <Nav className="ml-auto" navbar>
+
+
+              <NavItem><Link onClick={this.fold} className='nav-link' to={routes.LOCATIONS}>Locations</Link></NavItem>
+              <NavItem><Link onClick={this.fold} className='nav-link' to={routes.ACCOUNT}>Account</Link></NavItem>
+              <NavItem><SignOutButton /></NavItem>
+            </Nav>
+          :<Nav className="ml-auto" navbar>
+            <NavItem><Link onClick={this.fold} className='nav-link' to={routes.LANDING}>Home</Link></NavItem>
+            <NavItem><Link onClick={this.fold} className='nav-link' to={routes.SIGN_IN}>Sign In</Link></NavItem>
+          </Nav>  }
+        </AuthUserContext.Consumer>
+
+        <Route exact path={routes.LOCATIONS} component={() => <LocationsSideNav />} />
+
+      </Collapse>
+
+    </nav>
+  }
+
+}
 
 
 
-<div class="collapse navbar-collapse" id="navbarResponsive">
+
+const Navigation = ( history ) =>
+  <BootstrapNavigation history={history}/>
 
 
 
-
-
-
-
-</div>
-
-</nav>
-
-//{this.state.isOpen}
-
-const NavigationAuth = () =>
-<Nav className="ml-auto" navbar>
-  <NavItem><NavLink href={routes.LOCATIONS}>Locations</NavLink></NavItem>
-  <NavItem><NavLink href={routes.ACCOUNT}>Account</NavLink></NavItem>
-  <NavItem><SignOutButton /></NavItem>
-</Nav>
-
-
-
-const NavigationNonAuth = () =>
-<Nav className="ml-auto" navbar>
-  <NavItem><NavLink  href={routes.LANDING}>Home</NavLink></NavItem>
-  <NavItem><NavLink  href={routes.SIGN_IN}>Sign In</NavLink></NavItem>
-</Nav>
-
-export default Navigation;
+export default withRouter(Navigation);
