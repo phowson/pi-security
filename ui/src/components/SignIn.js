@@ -7,10 +7,10 @@ import * as routes from '../constants/routes';
 import { PasswordForgetLink } from './PasswordForget';
 
 
-const SignInPage = ({ history }) =>
+const SignInPage = ({ history, locationHolder }) =>
   <div>
     <h1>SignIn</h1>
-    <SignInForm history={history} />
+    <SignInForm history={history} locationHolder = {locationHolder}/>
     <PasswordForgetLink />
     <SignUpLink />
   </div>
@@ -28,11 +28,13 @@ const INITIAL_STATE = {
 class SignInForm extends Component {
   constructor(props) {
     super(props);
-
+    this.locationHolder = props['locationHolder'];
     this.state = { ...INITIAL_STATE };
   }
 
   onSubmit = (event) => {
+
+    this.locationHolder.setLocation(null);
     const {
       email,
       password,

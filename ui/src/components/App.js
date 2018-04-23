@@ -12,30 +12,87 @@ import PasswordForgetPage from './PasswordForget';
 import LocationsPage from './Locations';
 import AccountPage from './Account';
 
+
+import StatusPage from './Status';
+import ActivityPage from './Activity';
+import StatsPage from './Stats';
+import ControlPage from './Control';
+import SettingsPage from './Settings';
+
+
+import LocationContext from './LocationContext';
+
 import * as routes from '../constants/routes';
 import withAuthentication from './withAuthentication';
 
 
-const App = () =>
-<Router>
 
-  <div>
-    <Navigation />
+class MainApp extends React.Component {
+  constructor(props) {
+    super(props);
 
-    <div className="content-wrapper">
-      <div className="container-fluid">
+    this.state = {
+      location: null
+    };
+    this.setLocation = this.setLocation.bind(this);
 
-        <Route exact path={routes.LANDING} component={() => <LandingPage />} />
-        <Route exact path={routes.SIGN_UP} component={() => <SignUpPage />} />
-        <Route exact path={routes.SIGN_IN} component={() => <SignInPage />} />
-        <Route exact path={routes.PASSWORD_FORGET} component={() => <PasswordForgetPage />} />
-        <Route exact path={routes.LOCATIONS} component={() => <LocationsPage />} />
-        <Route exact path={routes.ACCOUNT} component={() => <AccountPage />} />
-      </div>
-    </div>
-  </div>
 
-</Router>
+  }
+
+
+  setLocation(newLocation) {
+    console.log("Setting location to : " + newLocation);
+    this.setState(
+      {
+        location : newLocation
+      }
+    );
+  }
+
+  render() {
+
+    const t = this;
+    const {location} = this.state;
+
+    console.log("Rendering with location = : " +location);
+    return (
+      <Router>
+        <div>
+
+
+          <LocationContext.Provider value={location}>
+            <Navigation />
+          </LocationContext.Provider>
+          <div className="content-wrapper">
+            <div className="container-fluid">
+              <Route exact path={routes.LANDING} component={() => <LandingPage />} />
+              <Route exact path={routes.SIGN_UP} component={() => <SignUpPage />} />
+              <Route exact path={routes.SIGN_IN} component={() => <SignInPage locationHolder={t}/>} />
+              <Route exact path={routes.PASSWORD_FORGET} component={() => <PasswordForgetPage />} />
+              <Route exact path={routes.LOCATIONS} component={() => <LocationsPage locationHolder = {t}/>} />
+              <Route exact path={routes.ACCOUNT} component={() => <AccountPage />} />
+
+
+              <Route exact path={routes.STATUS} component={() => <StatusPage />} />
+              <Route exact path={routes.ACTIVITY} component={() => <ActivityPage />} />
+              <Route exact path={routes.STATS} component={() => <StatsPage />} />
+              <Route exact path={routes.CONTROL} component={() => <ControlPage />} />
+              <Route exact path={routes.SETTINGS} component={() => <SettingsPage />} />
+
+
+            </div>
+          </div>
+
+
+        </div>
+
+      </Router> );
+    }
+
+
+  }
+
+  const App = () => <MainApp/>
 
 
 export default withAuthentication(App);

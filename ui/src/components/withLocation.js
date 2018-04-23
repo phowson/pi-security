@@ -15,6 +15,10 @@ const withLocation = (Component) => {
 
 
 
+
+
+
+
     render() {
       const { location } = this.state;
 
