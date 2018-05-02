@@ -25,7 +25,7 @@ import LocationContext from './LocationContext';
 import * as routes from '../constants/routes';
 import withAuthentication from './withAuthentication';
 
-
+import firebase from '../firebase/firebase.js';
 
 class MainApp extends React.Component {
   constructor(props) {
@@ -35,7 +35,6 @@ class MainApp extends React.Component {
       location: null
     };
     this.setLocation = this.setLocation.bind(this);
-
 
   }
 
@@ -47,6 +46,12 @@ class MainApp extends React.Component {
         location : newLocation
       }
     );
+  }
+
+
+  getLocation() {
+    const {location} = this.state;
+    return location;
   }
 
   render() {
@@ -73,11 +78,11 @@ class MainApp extends React.Component {
               <Route exact path={routes.ACCOUNT} component={() => <AccountPage />} />
 
 
-              <Route exact path={routes.STATUS} component={() => <StatusPage />} />
-              <Route exact path={routes.ACTIVITY} component={() => <ActivityPage />} />
-              <Route exact path={routes.STATS} component={() => <StatsPage />} />
-              <Route exact path={routes.CONTROL} component={() => <ControlPage />} />
-              <Route exact path={routes.SETTINGS} component={() => <SettingsPage />} />
+              <Route exact path={routes.STATUS} component={() => <StatusPage locationHolder = {t}/>} />
+              <Route exact path={routes.ACTIVITY} component={() => <ActivityPage locationHolder = {t}/>} />
+              <Route exact path={routes.STATS} component={() => <StatsPage locationHolder = {t}/>} />
+              <Route exact path={routes.CONTROL} component={() => <ControlPage locationHolder = {t}/>} />
+              <Route exact path={routes.SETTINGS} component={() => <SettingsPage locationHolder = {t}/>} />
 
 
             </div>
