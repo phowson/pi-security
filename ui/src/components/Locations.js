@@ -111,18 +111,24 @@ class LocationsPage extends React.Component {
 
     const t  = this;
     return (
-
-      <div className="card mb-3">
-        <div className="card-header">
-          <i className="fa fa-table"></i>Monitored Locations</div>
-          <div className="card-body">
-            <div className="table-responsive">
-              <LocationList getLocations={ () => t.state["locations"] } locationHolder={t.locationHolder}/>
+      <div>
+        <ol className="breadcrumb">
+          <li className="breadcrumb-item">
+            <Link to="locations">Locations</Link>
+          </li>
+        </ol>
+        <div className="card mb-3">
+          <div className="card-header">
+            <i className="fa fa-table"></i>Monitored Locations</div>
+            <div className="card-body">
+              <div className="table-responsive">
+                <LocationList getLocations={ () => t.state["locations"] } locationHolder={t.locationHolder}/>
+              </div>
             </div>
           </div>
         </div>
 
-      );
+        );
 
     }
 
