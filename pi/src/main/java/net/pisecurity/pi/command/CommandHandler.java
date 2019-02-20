@@ -54,17 +54,14 @@ public class CommandHandler {
 						break;
 
 					case DISARM:
-						alertState.armed = false;
-						alarmBellController.off();
+						doResetAlarm();
 						listener.onEvent(new Event(System.currentTimeMillis(), -1, "System manually disarmed",
 								EventType.SYSTEM_MANUAL_DISARMED, "Disarmed manually", deviceId, EventAlertType.NONE,
 								false));
 						break;
 
 					case RESET_ALARM:
-						alarmBellController.off();
-						alertState.alarmActive = false;
-						alertState.firstActivityTs = 0;
+						doResetAlarm();
 
 						listener.onEvent(new Event(System.currentTimeMillis(), -1, "Alarm reset manually",
 								EventType.ALARMRESET, "Alarm reset manually", deviceId, EventAlertType.NONE, false));
@@ -85,9 +82,16 @@ public class CommandHandler {
 					persistenceService.persist(request);
 
 				}
+
 			});
 
 		}
+	}
+
+	private void doResetAlarm() {
+		alarmBellController.off();
+		alertState.alarmActive = false;
+		alertState.firstActivityTs = 0;
 	}
 
 }
