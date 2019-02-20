@@ -57,7 +57,7 @@ public class CommandHandler {
 						alertState.armed = false;
 						alarmBellController.off();
 						listener.onEvent(new Event(System.currentTimeMillis(), -1, "System manually disarmed",
-								EventType.SYSTEM_MANUAL_DISARMED, "Disrmed manually", deviceId, EventAlertType.NONE,
+								EventType.SYSTEM_MANUAL_DISARMED, "Disarmed manually", deviceId, EventAlertType.NONE,
 								false));
 						break;
 
