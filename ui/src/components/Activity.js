@@ -13,7 +13,7 @@ const columns = [
   { dataField: "comment",text : "Comment" },
   { dataField: "deviceId",text : "Device ID" },
   { dataField: "gpioPin",text : "GPIO Pin" },
-  { dataField: "notify",text : "Caused Alert" },
+  { dataField: "notify",text : "Notifiable" },
   { dataField: "alertType",text : "Alert Type" },
 ];
 
