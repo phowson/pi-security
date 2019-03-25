@@ -89,13 +89,17 @@ class LocationsPage extends React.Component {
 
       if (c._mounted) {
 
-        let locations = [];
+        var locations = c.state.locations;
+        if (locations==null) {
+          locations=[];
+        }
         snapshot.forEach( (item) => {
           locations.push({
             key: item.key,
-            id: item.key
+            id: item.key,
+
           });
-          return true;
+          return false;
         });
 
 
