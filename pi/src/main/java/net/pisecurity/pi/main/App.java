@@ -54,7 +54,7 @@ import net.pisecurity.pi.persist.PersistingEventListener;
 import net.pisecurity.util.DoNothingRunnable;
 import net.pisecurity.util.NamedThreadFactory;
 
-public class App implements UncaughtExceptionHandler, Runnable {
+public class App implements UncaughtExceptionHandler, Runnable, Heartbeater {
 
 	private static final Logger logger = LogManager.getLogger(App.class);
 	private FirebaseApp firebaseApp;
@@ -84,6 +84,7 @@ public class App implements UncaughtExceptionHandler, Runnable {
 	private DHTMonitoringService dhtService;
 	
 	private long startupTime;
+	private DatabaseReference eventsSequenceRef;
 
 	public App(String configFileName, IOInterface ioInterface, AlarmBellController alarmBellController,
 			DHT11Factory dht11Factory) throws FileNotFoundException, IOException {
@@ -114,9 +115,11 @@ public class App implements UncaughtExceptionHandler, Runnable {
 		hbRef = locationRef.child("heartbeat").child(appConfig.deviceId);
 
 		eventsRef = locationRef.child("events");
+		eventsSequenceRef = locationRef.child("eventsSequence");
 		dhtRef = locationRef.child("humidityTemperature");
 
-		FirebasePersistenceService persistenceService = new FirebasePersistenceService(database, eventsRef, hbRef,
+
+		FirebasePersistenceService persistenceService = new FirebasePersistenceService(database, eventsRef, eventsSequenceRef, hbRef,
 				commandRef, dhtRef, appConfig.deviceId);
 		this.internetStatus = persistenceService;
 		this.persistenceService = persistenceService;
@@ -308,7 +311,7 @@ public class App implements UncaughtExceptionHandler, Runnable {
 				eventListener, this.appConfig.deviceId);
 
 		this.commandHandler = new CommandHandler(alertState, mainExecutor, alarmBellController, eventListener,
-				persistenceService, this.appConfig.deviceId);
+				persistenceService, this.appConfig.deviceId, this);
 
 		commandRef.addValueEventListener(new ValueEventListener() {
 			@Override
@@ -465,6 +468,7 @@ public class App implements UncaughtExceptionHandler, Runnable {
 		eventListener.onEvent(new Event(System.currentTimeMillis(), -1, "System start", EventType.SYSTEM_START,
 				"System startup at timestamp : " + System.currentTimeMillis(), appConfig.deviceId, EventAlertType.NONE,
 				false));
+		writeHeartbeat();
 
 	}
 
@@ -481,5 +485,11 @@ public class App implements UncaughtExceptionHandler, Runnable {
 		} catch (Exception e) {
 			logger.error("Unexpected exception while persisting heartbeat", e);
 		}
+	}
+
+	@Override
+	public void writeHeartbeat() {
+		mainExecutor.execute(this);
+		
 	}
 }

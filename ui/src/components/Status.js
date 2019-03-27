@@ -2,34 +2,7 @@ import React from 'react';
 import firebase from '../firebase/firebase.js';
 import { Route, Link, withRouter } from 'react-router-dom';
 import * as routes from '../constants/routes';
-
-
-function twoDigit(x) {
-
-  let y = "" + x;
-  if (y.length<2) {
-
-      return "0" +y;
-  }
-  return y;
-
-}
-
-
-function convertTS(ts) {
-
-  if (ts==null || ts==0) {
-    return "";
-
-  }
-
-  var date = new Date(ts);
-
-
-  return date.getFullYear() + "-" + twoDigit(date.getMonth()+1) + "-" + twoDigit(date.getDay()) +" " + twoDigit(date.getHours()) +":" + twoDigit(date.getMinutes()) +":" + twoDigit(date.getSeconds());
-}
-
-
+import * as helpers from '../helpers/datehelpers.js';
 
 
 
@@ -39,20 +12,87 @@ class DeviceList extends React.Component {
     super();
     this.getHeartbeats = params['getHeartbeats'];
     this.locationHolder = params['locationHolder']
-    this.onLinkClick = this.onLinkClick.bind(this);
+    this.onArmClicked = this.onArmClicked.bind(this);
+    this.onDisarmClicked = this.onDisarmClicked.bind(this);
+    this.onTriggerBell = this.onTriggerBell.bind(this);
+    this.onReset = this.onReset.bind(this);
+  }
+
+  onArmClicked(dbKey) {
+
+
+    return (e) => {
+      const command = firebase.database().ref('locations/' + this.locationHolder.getLocation()  +"/device-config/" + dbKey + "/command");
+      command.set(
+        {
+            "command" : "ARM",
+            "applied" : false
+
+
+        }
+      );
+     
+    }
+
   }
 
 
+  onDisarmClicked(dbKey) {
 
-  onLinkClick(event, itemId) {
-    this.locationHolder.setLocation(itemId);
+    return (e) => {
+      const command = firebase.database().ref('locations/' + this.locationHolder.getLocation()  +"/device-config/" + dbKey + "/command");
+      command.set(
+        {
+            "command" : "DISARM",
+            "applied" : false
+
+
+        }
+      );
+     
+    }
+
+
   }
 
+  onTriggerBell(dbKey) {
 
+    return (e) => {
+      const command = firebase.database().ref('locations/' + this.locationHolder.getLocation()  +"/device-config/" + dbKey + "/command");
+      command.set(
+        {
+            "command" : "TRIGGER_ALARM",
+            "applied" : false
+
+
+        }
+      );
+     
+    }
+
+  }
+
+  onReset(dbKey) {
+
+    return (e) => {
+      const command = firebase.database().ref('locations/' + this.locationHolder.getLocation()  +"/device-config/" + dbKey + "/command");
+      command.set(
+        {
+            "command" : "RESET_ALARM",
+            "applied" : false
+
+
+        }
+      );
+     
+    }
+
+    
+  }
 
   render() {
     let l = this.getHeartbeats();
-
+    let c = this;
 
     return (
       <table
@@ -76,6 +116,10 @@ class DeviceList extends React.Component {
             <th>
               Alarm bell
             </th>
+
+            <th>
+              Controls
+            </th>            
 
           </tr>
         </thead>
@@ -106,6 +150,18 @@ class DeviceList extends React.Component {
                     <td>
                     {   (item.alarmTriggered)  ? "RINGING":  "SILENT" }
                       
+                  </td>
+
+                  <td>
+
+                    <button onClick={ c.onArmClicked(item.key) }>Arm</button>
+                    <div style={ {width : 5 , height:"auto" , display : "inline-block"} } />                    
+                    <button onClick={ c.onDisarmClicked(item.key) }>Disarm</button>
+                    <div style={ {width : 5 , height:"auto" , display : "inline-block"} } />       
+                    <button  onClick={ c.onTriggerBell(item.key) }>Trigger bell</button>
+                    <div style={ {width : 5 , height:"auto" , display : "inline-block"} } />       
+                    <button  onClick={ c.onReset(item.key) }>Reset</button>
+
                   </td>
 
                   </tr>
@@ -160,8 +216,8 @@ class StatusPage extends React.Component {
           heartbeats.push({
             key: childSnapshot.key,
             id: childSnapshot.key,
-            lastHeartbeat: convertTS(childSnapshot.child("timestamp").val()),
-            lastAlarmTime : convertTS(childSnapshot.child("lastAlarmTime").val()),
+            lastHeartbeat: helpers.convertTS(childSnapshot.child("timestamp").val()),
+            lastAlarmTime :helpers.convertTS(childSnapshot.child("lastAlarmTime").val()),
             armed: childSnapshot.child("armed").val(),
             alarmTriggered: childSnapshot.child("alarmTriggered").val(),
           });

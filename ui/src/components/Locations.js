@@ -85,14 +85,11 @@ class LocationsPage extends React.Component {
     this._mounted = true;
     const c = this;
     const itemsRef = firebase.database().ref('locations');
-    itemsRef.on('value', (snapshot) => {
+    itemsRef.once('value', (snapshot) => {
 
       if (c._mounted) {
 
-        var locations = c.state.locations;
-        if (locations==null) {
-          locations=[];
-        }
+        var locations = [];
         snapshot.forEach( (item) => {
           locations.push({
             key: item.key,

@@ -10,6 +10,8 @@ import net.pisecurity.model.Event;
 import net.pisecurity.model.EventAlertType;
 import net.pisecurity.model.EventType;
 import net.pisecurity.model.RequestedState;
+import net.pisecurity.pi.main.App;
+import net.pisecurity.pi.main.Heartbeater;
 import net.pisecurity.pi.monitoring.AlarmBellController;
 import net.pisecurity.pi.monitoring.AlertState;
 import net.pisecurity.pi.persist.PersistenceService;
@@ -25,15 +27,18 @@ public class CommandHandler {
 
 	private String deviceId;
 
+	private Heartbeater heartbeater;
+
 	public CommandHandler(AlertState alertState, Executor mainExecutor, AlarmBellController alarmBellController,
 			net.pisecurity.pi.monitoring.EventListener listener, PersistenceService persistenceService,
-			String deviceId) {
+			String deviceId, Heartbeater hb) {
 		this.alertState = alertState;
 		this.mainExecutor = mainExecutor;
 		this.listener = listener;
 		this.alarmBellController = alarmBellController;
 		this.persistenceService = persistenceService;
 		this.deviceId = deviceId;
+		this.heartbeater = hb;
 	}
 
 	public void onCommand(RequestedState request) {
@@ -55,6 +60,7 @@ public class CommandHandler {
 
 					case DISARM:
 						doResetAlarm();
+						alertState.armed = false;
 						listener.onEvent(new Event(System.currentTimeMillis(), -1, "System manually disarmed",
 								EventType.SYSTEM_MANUAL_DISARMED, "Disarmed manually", deviceId, EventAlertType.NONE,
 								false));
@@ -80,7 +86,7 @@ public class CommandHandler {
 
 					request.applied = true;
 					persistenceService.persist(request);
-
+					heartbeater.writeHeartbeat();
 				}
 
 			});

@@ -4,7 +4,7 @@ import paginationFactory from 'react-bootstrap-table2-paginator';
 import LocationContext from './LocationContext';
 import {Route, Link,  withRouter } from 'react-router-dom';
 import firebase from '../firebase/firebase.js';
-
+import * as helpers from '../helpers/datehelpers.js';
 
 const columns = [
   { dataField: "timestamp", text : "Date / Time" },
@@ -88,7 +88,7 @@ class ActivityPage extends React.Component {
 
 
     const itemsRef = firebase.database().ref('locations/' + this.locationHolder.getLocation() +"/events");
-    itemsRef.orderByChild("rtimestamp").
+    itemsRef.orderByChild("sequenceId").
     limitToFirst(endIdx ).
     on('value', (snapshot) => {
       snapshot.forEach( (item) => {

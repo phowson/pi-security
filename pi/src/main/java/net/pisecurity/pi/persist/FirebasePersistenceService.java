@@ -1,8 +1,6 @@
 package net.pisecurity.pi.persist;
 
 import java.lang.Thread.UncaughtExceptionHandler;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -12,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.DatabaseReference.CompletionListener;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
 
@@ -31,6 +30,8 @@ public class FirebasePersistenceService
 	private static final long RETRY_DELAY_SECONDS = 10;
 	private static final long PERSIST_TIMEOUT = 60000;
 	private DatabaseReference eventsRef;
+	private DatabaseReference eventsSequenceRef;
+
 	private volatile boolean connected = true;
 	private DatabaseReference heartbeatRef;
 	private ScheduledThreadPoolExecutor retryScheduler;
@@ -44,10 +45,13 @@ public class FirebasePersistenceService
 	private long lastHbTime;
 	private String deviceId;
 
+
+
 	public FirebasePersistenceService(DatabaseReference database, DatabaseReference eventsRef,
-			DatabaseReference heartbeatRef, DatabaseReference requestedStateRef, DatabaseReference dhtRef,
-			String deviceId) {
+			DatabaseReference eventsSequenceRef, DatabaseReference heartbeatRef, DatabaseReference requestedStateRef,
+			DatabaseReference dhtRef, String deviceId) {
 		this.eventsRef = eventsRef;
+		this.eventsSequenceRef = eventsSequenceRef;
 		this.heartbeatRef = heartbeatRef;
 		this.requestedStateRef = requestedStateRef;
 		this.dhtRef = dhtRef;
@@ -118,17 +122,57 @@ public class FirebasePersistenceService
 	}
 
 	private void persistInternal(Event event, int retries) {
-		eventsRef.push().runTransaction(new Transaction.Handler() {
+
+		eventsSequenceRef.runTransaction(new Transaction.Handler() {
+			private long currentEventSequence=1;
 			public Transaction.Result doTransaction(MutableData mutableData) {
-				mutableData.setValue(event);
+
+				
+
+				Number n = ((Number) mutableData.getValue());
+				if (n != null) {
+					long seq;
+					seq = n.longValue();
+
+					event.sequenceId = seq;
+					mutableData.setValue(--seq);
+					
+					
+					logger.info("Sequene is : "+ seq);
+					
+					if (seq<currentEventSequence) {
+						currentEventSequence = seq;
+					
+	
+						eventsRef.push().setValue(event, new CompletionListener() {
+	
+							@Override
+							public void onComplete(DatabaseError databaseError, DatabaseReference ref) {
+								if (databaseError == null) {
+									if (!connected) {
+										logger.info("Internet connection regained");
+									}
+									onConnectedChanged(true);
+								} else {
+									logger.error("Error reported during save of event. Cannot continue" + databaseError
+											+ ", retries = " + retries);
+									onConnectedChanged(false);
+									retry(event, retries + 1);
+	
+								}
+							}
+						});
+					}
+
+					
+				} 
 				return Transaction.success(mutableData);
+
 			}
 
-			public void onComplete(DatabaseError databaseError, boolean complete, DataSnapshot dataSnapshot) {
+			@Override
+			public void onComplete(DatabaseError databaseError, boolean complete, DataSnapshot currentData) {
 				if (databaseError == null && complete) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Heartbeat persisted OK");
-					}
 					if (!connected) {
 						logger.info("Internet connection regained");
 					}
@@ -141,7 +185,8 @@ public class FirebasePersistenceService
 
 				}
 			}
-		});
+		}, false);
+
 	}
 
 	protected void retry(Event event, int retries) {
