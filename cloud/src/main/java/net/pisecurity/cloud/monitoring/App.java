@@ -79,7 +79,7 @@ public class App implements UncaughtExceptionHandler, java.util.concurrent.Rejec
 
 		Executor executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("TwillioThread", this, false));
 		notificationService = new NotificationService(voiceAlertService, new TwilioSMS(twilioAccountDetails), executor,
-				database.child("calls"));
+				database.child("calls"), database.child("callSequence"));
 
 		database.child("locations").addChildEventListener(new ChildEventListener() {
 

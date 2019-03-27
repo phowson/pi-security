@@ -5,4 +5,5 @@ public class CallRecord {
 	public String label;
 	public long time;
 	public boolean answered;
+	public long sequenceId;
 }

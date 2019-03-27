@@ -35,13 +35,15 @@ public class NotificationService implements CallStatusListener {
 	private Executor executor;
 
 	private DatabaseReference callDbRef;
+	private DatabaseReference callSequenceRef;
 
 	public NotificationService(TwilioVoiceAlertService voiceAlertService, TwilioSMS twilioSms, Executor executor,
-			DatabaseReference callDbRef) {
+			DatabaseReference callDbRef, DatabaseReference callSequenceRef) {
 		this.voiceAlertService = voiceAlertService;
 		this.executor = executor;
 		this.twilioSms = twilioSms;
 		this.callDbRef = callDbRef;
+		this.callSequenceRef = callSequenceRef;
 	}
 
 	private void sendVoiceMessage(String s, List<PhoneRecord> numbersToCall, int callRetries) {
@@ -150,12 +152,43 @@ public class NotificationService implements CallStatusListener {
 			public void run() {
 				try {
 
-					callDbRef.push().runTransaction(new Transaction.Handler() {
-						public Transaction.Result doTransaction(MutableData mutableData) {
-							mutableData.setValue(obs);
-							return Transaction.success(mutableData);
-						}
+					callSequenceRef.runTransaction(new Transaction.Handler() {
+						private long currentSequence = 1;
 
+						public Transaction.Result doTransaction(MutableData mutableData) {
+
+							Number n = ((Number) mutableData.getValue());
+							if (n != null) {
+								long seq;
+								seq = n.longValue();
+
+								obs.sequenceId = seq;
+								mutableData.setValue(--seq);
+
+								if (seq < currentSequence) {
+									currentSequence = seq;
+									callDbRef.push().runTransaction(new Transaction.Handler() {
+										public Transaction.Result doTransaction(MutableData mutableData) {
+											mutableData.setValue(obs);
+											return Transaction.success(mutableData);
+										}
+
+										public void onComplete(DatabaseError databaseError, boolean complete,
+												DataSnapshot dataSnapshot) {
+											if (databaseError == null && complete) {
+												if (logger.isDebugEnabled()) {
+													logger.debug("observation persisted OK");
+												}
+											}
+										}
+									});
+								}
+							}
+							
+							return Transaction.success(mutableData);
+							
+							
+						}
 						public void onComplete(DatabaseError databaseError, boolean complete,
 								DataSnapshot dataSnapshot) {
 							if (databaseError == null && complete) {
@@ -165,6 +198,8 @@ public class NotificationService implements CallStatusListener {
 							}
 						}
 					});
+						
+
 
 				} catch (Exception e) {
 					logger.error("Unexpected exception", e);

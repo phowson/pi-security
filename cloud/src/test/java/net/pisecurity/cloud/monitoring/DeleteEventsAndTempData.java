@@ -35,5 +35,8 @@ public class DeleteEventsAndTempData {
 		
 		c = database.child("locations/test-1/humidityTemperature");
 		c.removeValueAsync().get();
+		
+		c = database.child("calls");
+		c.removeValueAsync().get();
 	}
 }

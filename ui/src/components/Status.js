@@ -6,6 +6,88 @@ import * as helpers from '../helpers/datehelpers.js';
 
 
 
+class RecentEventsList extends React.Component {
+
+  constructor(params) {
+    super();
+    this.getRecentEvents = params['getRecentEvents'];
+    this.locationHolder = params['locationHolder']
+  }
+
+
+  render() {
+    let l = this.getRecentEvents();
+    let c = this;
+
+    return (
+      <table
+        className="table-striped table-hover table-bordered table-condensed"
+        cellPadding="5px"
+      >
+        <thead>
+          <tr>
+            <th>
+              Time
+            </th>
+
+            <th>
+              Device
+            </th>
+            <th>
+              Event Description
+            </th>
+            <th>
+              Could trigger an alarm
+            </th>
+
+          </tr>
+        </thead>
+        <tbody>
+          {
+
+            l ?
+              l.map((item) => {
+                return (
+                  <tr key={item.key}>
+                    <td key={item.key}>
+                      {item.time}
+                    </td>
+
+
+                    <td >
+                      {item.deviceId}
+                    </td>
+
+                    <td >
+                      {item.label}
+                    </td>
+
+                    <td >
+
+                    <div style={(item.notify) ? { color: "red" } : {}} >
+                      {item.notify ? "Yes" : "No" }
+
+                      </div>
+                    </td>
+
+                  </tr>
+                )
+              })
+              : ""
+
+          }
+        </tbody>
+      </table>
+    );
+
+
+  }
+
+}
+
+
+
+
 class DeviceList extends React.Component {
 
   constructor(params) {
@@ -22,16 +104,16 @@ class DeviceList extends React.Component {
 
 
     return (e) => {
-      const command = firebase.database().ref('locations/' + this.locationHolder.getLocation()  +"/device-config/" + dbKey + "/command");
+      const command = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/device-config/" + dbKey + "/command");
       command.set(
         {
-            "command" : "ARM",
-            "applied" : false
+          "command": "ARM",
+          "applied": false
 
 
         }
       );
-     
+
     }
 
   }
@@ -40,16 +122,16 @@ class DeviceList extends React.Component {
   onDisarmClicked(dbKey) {
 
     return (e) => {
-      const command = firebase.database().ref('locations/' + this.locationHolder.getLocation()  +"/device-config/" + dbKey + "/command");
+      const command = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/device-config/" + dbKey + "/command");
       command.set(
         {
-            "command" : "DISARM",
-            "applied" : false
+          "command": "DISARM",
+          "applied": false
 
 
         }
       );
-     
+
     }
 
 
@@ -58,16 +140,16 @@ class DeviceList extends React.Component {
   onTriggerBell(dbKey) {
 
     return (e) => {
-      const command = firebase.database().ref('locations/' + this.locationHolder.getLocation()  +"/device-config/" + dbKey + "/command");
+      const command = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/device-config/" + dbKey + "/command");
       command.set(
         {
-            "command" : "TRIGGER_ALARM",
-            "applied" : false
+          "command": "TRIGGER_ALARM",
+          "applied": false
 
 
         }
       );
-     
+
     }
 
   }
@@ -75,19 +157,19 @@ class DeviceList extends React.Component {
   onReset(dbKey) {
 
     return (e) => {
-      const command = firebase.database().ref('locations/' + this.locationHolder.getLocation()  +"/device-config/" + dbKey + "/command");
+      const command = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/device-config/" + dbKey + "/command");
       command.set(
         {
-            "command" : "RESET_ALARM",
-            "applied" : false
+          "command": "RESET_ALARM",
+          "applied": false
 
 
         }
       );
-     
+
     }
 
-    
+
   }
 
   render() {
@@ -119,7 +201,7 @@ class DeviceList extends React.Component {
 
             <th>
               Controls
-            </th>            
+            </th>
 
           </tr>
         </thead>
@@ -135,34 +217,34 @@ class DeviceList extends React.Component {
                     </td>
 
                     <td>
-                    {item.lastHeartbeat}
-                  </td>
+                      {item.lastHeartbeat}
+                    </td>
                     <td>
-                    {item.lastAlarmTime}
-                  </td>
+                      {item.lastAlarmTime}
+                    </td>
                     <td>
 
-                      <div style={ (item.armed)  ?  {color:"red"}: {color:"green"} } >
-                      {   (item.armed)  ? "ARMED":  "DISARMED" }
+                      <div style={(item.armed) ? { color: "red" } : { color: "green" }} >
+                        {(item.armed) ? "ARMED" : "DISARMED"}
                       </div>
 
-                  </td>
+                    </td>
                     <td>
-                    {   (item.alarmTriggered)  ? "RINGING":  "SILENT" }
-                      
-                  </td>
+                      {(item.alarmTriggered) ? "RINGING" : "SILENT"}
 
-                  <td>
+                    </td>
 
-                    <button onClick={ c.onArmClicked(item.key) }>Arm</button>
-                    <div style={ {width : 5 , height:"auto" , display : "inline-block"} } />                    
-                    <button onClick={ c.onDisarmClicked(item.key) }>Disarm</button>
-                    <div style={ {width : 5 , height:"auto" , display : "inline-block"} } />       
-                    <button  onClick={ c.onTriggerBell(item.key) }>Trigger bell</button>
-                    <div style={ {width : 5 , height:"auto" , display : "inline-block"} } />       
-                    <button  onClick={ c.onReset(item.key) }>Reset</button>
+                    <td>
 
-                  </td>
+                      <button onClick={c.onArmClicked(item.key)}>Arm</button>
+                      <div style={{ width: 5, height: "auto", display: "inline-block" }} />
+                      <button onClick={c.onDisarmClicked(item.key)}>Disarm</button>
+                      <div style={{ width: 5, height: "auto", display: "inline-block" }} />
+                      <button onClick={c.onTriggerBell(item.key)}>Trigger bell</button>
+                      <div style={{ width: 5, height: "auto", display: "inline-block" }} />
+                      <button onClick={c.onReset(item.key)}>Reset</button>
+
+                    </td>
 
                   </tr>
                 )
@@ -199,10 +281,48 @@ class StatusPage extends React.Component {
 
 
 
+  queryRecentEvents(maxEventSeq) {
+    var c = this;
+    const query2 = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/events").orderByChild("sequenceId").startAt(maxEventSeq).endAt(maxEventSeq + 20);
+    console.log(maxEventSeq);
+    query2.on("value", function (snapshot) {
+      console.log(snapshot);
+      if (c._mounted) {
+
+
+        var events = [];
+
+
+        snapshot.forEach(function (childSnapshot) {
+          events.push({
+            key: childSnapshot.key,
+            id: childSnapshot.key,
+            time: helpers.convertTS(childSnapshot.child("timestamp").val()),
+            eventType: childSnapshot.child("type").val(),
+            deviceId: childSnapshot.child("deviceId").val(),
+            label: childSnapshot.child("label").val(),
+            notify: childSnapshot.child("notify").val(),
+
+          });
+
+          console.log(events);
+
+          c.setState({ events: events });
+
+
+          return false;
+
+        });
+      }
+    });
+  }
+
 
   componentDidMount() {
     this._mounted = true;
     const c = this;
+
+
     const query = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/heartbeat").orderByKey();
     var t = this;
     query.on("value", function (snapshot) {
@@ -217,12 +337,11 @@ class StatusPage extends React.Component {
             key: childSnapshot.key,
             id: childSnapshot.key,
             lastHeartbeat: helpers.convertTS(childSnapshot.child("timestamp").val()),
-            lastAlarmTime :helpers.convertTS(childSnapshot.child("lastAlarmTime").val()),
+            lastAlarmTime: helpers.convertTS(childSnapshot.child("lastAlarmTime").val()),
             armed: childSnapshot.child("armed").val(),
             alarmTriggered: childSnapshot.child("alarmTriggered").val(),
           });
 
-          console.log(heartbeats);
 
           c.setState({ heartbeats: heartbeats });
 
@@ -230,9 +349,20 @@ class StatusPage extends React.Component {
 
         });
       }
-
-
     });
+
+
+    const query3 = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/eventsSequence").on("value",
+      function (snapshot) {
+        c.queryRecentEvents(snapshot.val());
+
+      }
+
+    );
+
+
+
+
   }
 
   render() {
@@ -260,7 +390,20 @@ class StatusPage extends React.Component {
             </div>
           </div>
         </div>
+
+
+        <div className="card mb-3">
+          <div className="card-header">
+            <i className="fa fa-table"></i>&nbsp;Recent events at {loc}</div>
+          <div className="card-body">
+            <div className="table-responsive">
+              <RecentEventsList getRecentEvents={() => t.state["events"]} locationHolder={t.locationHolder} />
+            </div>
+          </div>
+        </div>
+
       </div>
+
 
     );
 
