@@ -138,8 +138,7 @@ public class FirebasePersistenceService
 					mutableData.setValue(--seq);
 					
 					
-					logger.info("Sequene is : "+ seq);
-					
+										
 					if (seq<currentEventSequence) {
 						currentEventSequence = seq;
 					
