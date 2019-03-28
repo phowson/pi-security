@@ -6,10 +6,13 @@ public class RequestedState {
 	public Command command;
 
 	public boolean applied;
-
+	public String user;
 	@Override
 	public String toString() {
-		return "[timestamp=" + timestamp + ", command=" + command + ", applied=" + applied + "]";
+		return "RequestedState [timestamp=" + timestamp + ", command=" + command + ", applied=" + applied
+				+ ", username=" + user + "]";
 	}
+
+	
 
 }

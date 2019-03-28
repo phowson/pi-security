@@ -4,6 +4,7 @@ import { Route, Link, withRouter } from 'react-router-dom';
 import * as routes from '../constants/routes';
 import * as helpers from '../helpers/datehelpers.js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import AuthUserContext from './AuthUserContext.js'
 
 
 class RecentCallsList extends React.Component {
@@ -172,82 +173,52 @@ class DeviceList extends React.Component {
   constructor(params) {
     super();
     this.getHeartbeats = params['getHeartbeats'];
-    this.locationHolder = params['locationHolder']
+    this.locationHolder = params['locationHolder'];
+    this.username = params['username'];
+    console.log(this.username);
     this.onArmClicked = this.onArmClicked.bind(this);
     this.onDisarmClicked = this.onDisarmClicked.bind(this);
     this.onTriggerBell = this.onTriggerBell.bind(this);
     this.onReset = this.onReset.bind(this);
   }
 
+
+  sendCommand(dbKey, cmd) {
+    const t = this;
+    return (e) => {
+      const command = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/device-config/" + dbKey + "/command");
+      command.set(
+        {
+          "command": cmd,
+          "applied": false,
+          "user" : t.username,
+          "timestamp" : Date.now()
+
+        }
+      );
+
+    }
+
+  }
+
   onArmClicked(dbKey) {
-
-
-    return (e) => {
-      const command = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/device-config/" + dbKey + "/command");
-      command.set(
-        {
-          "command": "ARM",
-          "applied": false
-
-
-        }
-      );
-
-    }
+    return this.sendCommand(dbKey,"ARM");
 
   }
 
 
-  onDisarmClicked(dbKey) {
 
-    return (e) => {
-      const command = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/device-config/" + dbKey + "/command");
-      command.set(
-        {
-          "command": "DISARM",
-          "applied": false
-
-
-        }
-      );
-
-    }
-
-
-  }
+  onDisarmClicked(dbKey) {    
+    return this.sendCommand(dbKey,"DISARM");
+      }
 
   onTriggerBell(dbKey) {
-
-    return (e) => {
-      const command = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/device-config/" + dbKey + "/command");
-      command.set(
-        {
-          "command": "TRIGGER_ALARM",
-          "applied": false
-
-
-        }
-      );
-
-    }
-
+    return this.sendCommand(dbKey,"TRIGGER_ALARM");    
   }
 
   onReset(dbKey) {
 
-    return (e) => {
-      const command = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/device-config/" + dbKey + "/command");
-      command.set(
-        {
-          "command": "RESET_ALARM",
-          "applied": false
-
-
-        }
-      );
-
-    }
-
+    return this.sendCommand(dbKey,"RESET_ALARM");    
 
   }
 
@@ -349,6 +320,8 @@ class StatusPage extends React.Component {
 
   constructor(props) {
     super(props);
+
+    
     this.locationHolder = props['locationHolder'];
 
     this.state = {
@@ -491,7 +464,9 @@ class StatusPage extends React.Component {
   }
 
   render() {
+    var loggedInUser ;
 
+    loggedInUser = "unknown";
     const t = this;
     const loc = this.locationHolder.getLocation();
     return (
@@ -511,8 +486,19 @@ class StatusPage extends React.Component {
             <i className="fa fa-eye"></i>&nbsp;Current System Status at {loc}</div>
           <div className="card-body">
             <div className="table-responsive">
-              <DeviceList getHeartbeats={() => t.state["heartbeats"]} locationHolder={t.locationHolder} />
+
+            <AuthUserContext.Consumer>
+              { authUser => 
+              authUser ?
+              <DeviceList               
+              username= { authUser.email }
+              getHeartbeats={() => t.state["heartbeats"]} locationHolder={t.locationHolder} />
+               : ""
+              }
+            </AuthUserContext.Consumer> 
+
             </div>
+
           </div>
         </div>
 

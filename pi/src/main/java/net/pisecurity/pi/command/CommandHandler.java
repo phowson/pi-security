@@ -53,7 +53,7 @@ public class CommandHandler {
 
 					case ARM:
 						alertState.armed = true;
-						listener.onEvent(new Event(System.currentTimeMillis(), -1, "System manually armed",
+						listener.onEvent(new Event(System.currentTimeMillis(), -1, "System manually armed by " + request.user,
 								EventType.SYSTEM_MANUAL_ARMED, "Armed manually", deviceId, EventAlertType.NONE, false));
 
 						break;
@@ -61,7 +61,7 @@ public class CommandHandler {
 					case DISARM:
 						doResetAlarm();
 						alertState.armed = false;
-						listener.onEvent(new Event(System.currentTimeMillis(), -1, "System manually disarmed",
+						listener.onEvent(new Event(System.currentTimeMillis(), -1, "System manually disarmed by " + request.user,
 								EventType.SYSTEM_MANUAL_DISARMED, "Disarmed manually", deviceId, EventAlertType.NONE,
 								false));
 						break;
@@ -69,7 +69,7 @@ public class CommandHandler {
 					case RESET_ALARM:
 						doResetAlarm();
 
-						listener.onEvent(new Event(System.currentTimeMillis(), -1, "Alarm reset manually",
+						listener.onEvent(new Event(System.currentTimeMillis(), -1, "Alarm reset manually by " + request.user,
 								EventType.ALARMRESET, "Alarm reset manually", deviceId, EventAlertType.NONE, false));
 						break;
 
@@ -77,7 +77,7 @@ public class CommandHandler {
 						alarmBellController.on();
 						alertState.alarmActive = true;
 
-						listener.onEvent(new Event(System.currentTimeMillis(), -1, "Alarm triggered manually",
+						listener.onEvent(new Event(System.currentTimeMillis(), -1, "Alarm triggered manually by "  + request.user,
 								EventType.ALARMTRIGGERED_MANUAL, "Alarm triggered manually", deviceId,
 								EventAlertType.IMMEDIATE_ALERT, true));
 						break;
