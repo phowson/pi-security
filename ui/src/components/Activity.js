@@ -2,131 +2,225 @@ import React from 'react';
 import BootstrapTable from 'react-bootstrap-table-next';
 import paginationFactory from 'react-bootstrap-table2-paginator';
 import LocationContext from './LocationContext';
-import {Route, Link,  withRouter } from 'react-router-dom';
+import { Route, Link, withRouter } from 'react-router-dom';
 import firebase from '../firebase/firebase.js';
 import * as helpers from '../helpers/datehelpers.js';
-
-const columns = [
-  { dataField: "timestamp", text : "Date / Time" },
-  { dataField: "type", text : "Event Type" },
-  { dataField: "label",text : "Label" },
-  { dataField: "comment",text : "Comment" },
-  { dataField: "deviceId",text : "Device ID" },
-  { dataField: "gpioPin",text : "GPIO Pin" },
-  { dataField: "notify",text : "Notifiable" },
-  { dataField: "alertType",text : "Alert Type" },
-];
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 
-const RemotePagination = ({ data, page, sizePerPage, onTableChange, totalSize }) => (
-  <div>
-    <BootstrapTable
-      remote
-      striped
-      hover
-      condensed
-      keyField="id"
-      noDataIndication="No activity recorded"
-      data={ data }
-      columns={ columns }
-      pagination={
 
-        paginationFactory({
-          "page": page,
-          "sizePerPage": sizePerPage,
-          "totalSize" : totalSize,
-          "sizePerPageList": [{
-            text: '5', value: 5
-          }, {
-            text: '10', value: 10
-          }, {
-            text: '50', value:50
-          }]
+class RecentEventsList extends React.Component {
+
+  constructor(params) {
+    super();
+    this.getRecentEvents = params['getRecentEvents'];
+    this.locationHolder = params['locationHolder']
+  }
 
 
-        }) }
-        onTableChange={ onTableChange }
-        />
-    </div>
-  );
+  render() {
+    let l = this.getRecentEvents();
+    let c = this;
+
+    return (
+      <table
+        className="table-striped table-hover table-bordered table-condensed"
+        cellPadding="5px"
+      >
+        <thead>
+          <tr>
+            <th>
+              Time
+            </th>
+
+            <th>
+              Device
+            </th>
+            <th>
+              Event Description
+            </th>
+            <th>
+              Can trigger alarm
+            </th>
+            <th>
+              Device I/O pin
+            </th>
+
+            <th>
+              Event Type
+            </th>
+
+            <th>
+              Alert Type
+            </th>
+
+
+          </tr>
+        </thead>
+        <tbody>
+          {
+
+            l ?
+              l.map((item) => {
+                return (
+                  <tr key={item.key}>
+                    <td key={item.key}>
+                      {item.time}
+                    </td>
+
+
+                    <td >
+                      {item.deviceId}
+                    </td>
+
+                    <td >
+                      {item.label}
+                    </td>
+
+                    <td >
+
+                      <div style={(item.notify) ? { color: "red" } : {}} >
+                        {item.notify ? (<FontAwesomeIcon icon="check" />) : ""}
+
+                      </div>
+                    </td>
+                    <td >
+                      {item.ioPin >0 ? item.ioPin  : ""}
+                    </td>
+                    <td >
+                      {item.eventType}
+                    </td>
+
+
+                    <td >
+                      {item.alertType}
+                    </td>
+
+                  </tr>
+                )
+              })
+              : ""
+
+          }
+        </tbody>
+      </table>
+    );
+
+
+  }
+
+}
+
+
 
 class ActivityPage extends React.Component {
 
   constructor(props) {
     super(props);
-    const  initialSize = 5;
+
     this.locationHolder = props['locationHolder'];
+
+    this.limitTo = 10;
+    this.offset = 0;
+    this.knownMax = 0;
+
     this.state = {
-      page: 1,
-      data: [],
-      sizePerPage:  initialSize,
-      totalSize: 0
+      events: [],
     };
 
-
-    const func = (events, totalSize)=> {
-      const newState = {
-        page:1,
-        data:events ,
-        sizePerPage:initialSize,
-        totalSize : totalSize
-      };
-
-      this.state = newState;
-      this.setState(() => { return newState; });
-    }
-    this.getevents(0, initialSize, func);
-
   }
 
-  getevents(startIdx, endIdx , callback){
 
-    var results = [];
+  queryRecentEvents(maxEventSeq) {
 
-    console.log("Start index : "+ startIdx);
-    console.log("End index : "+ endIdx);
+    maxEventSeq = maxEventSeq+1;
+    this.knownMax = maxEventSeq;
+    var c = this;
+    var maxDisp = maxEventSeq + this.offset;
+    var minDisp = maxEventSeq + this.offset + this.limitTo;
+
+    const query2 = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/events").orderByChild("sequenceId").startAt(maxDisp).endAt(minDisp);
+    query2.on("value", function (snapshot) {
+      if (c._mounted) {
 
 
-    const itemsRef = firebase.database().ref('locations/' + this.locationHolder.getLocation() +"/events");
-    itemsRef.orderByChild("sequenceId").
-    limitToFirst(endIdx ).
-    on('value', (snapshot) => {
-      snapshot.forEach( (item) => {
+        var events = [];
 
-        var v1 = item.val();
-        v1['id'] = item.key;
 
-        if (startIdx==0) {
-          results.push(v1);
-        } else {
-          startIdx--;
-        }
+        snapshot.forEach(function (childSnapshot) {
+          events.push({
+            key: childSnapshot.key,
+            id: childSnapshot.key,
+            time: helpers.convertTS(childSnapshot.child("timestamp").val()),
+            eventType: childSnapshot.child("type").val(),
+            deviceId: childSnapshot.child("deviceId").val(),
+            label: childSnapshot.child("label").val(),
+            notify: childSnapshot.child("notify").val(),
+            ioPin: childSnapshot.child("gpioPin").val(),
+            alertType: childSnapshot.child("alertType").val(),
 
-      });
+          });
+
+          c.setState({ events: events, minDisp : -minDisp, maxDisp: -maxDisp });
+
+
+          return false;
+
+        });
+      }
     });
+  }
 
+  runQuery() {
+    const c = this;
+    const query3 = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/eventsSequence").on("value",
+      function (snapshot) {
+        c.queryRecentEvents(snapshot.val());
 
-    callback( results, 50 );
+      }
+
+    );
+
   }
 
 
-  handleTableChange = (type, { page, sizePerPage }) => {
-    const currentIndex = (page - 1) * sizePerPage;
+  componentDidMount() {
+    this._mounted = true;
 
-    const func = (events, totalSize)=> {
-      this.setState(() => ({
-        page,
-        data:events ,
-        sizePerPage,
-        totalSize : totalSize
-      }))};
-      this.getevents(currentIndex, currentIndex + sizePerPage, func);
+    this.runQuery();
 
-    }
+  }
+
+  onLeftClicked() {
+    const t = this;
+    return (e) => {
+      if (t.offset > 0) {
+        t.offset = t.offset - t.limitTo;
+      }
+      t.runQuery();
+    };
+
+  }
+
+
+  onRightClicked() {
+    const t = this;
+    return (e) => {
+
+      if (t.offset + t.knownMax + t.limitTo<0) {
+        t.offset = t.offset + t.limitTo;
+      }
+      t.runQuery();
+    };
+
+  }
 
   render() {
-    const { data, sizePerPage, page, totalSize } = this.state;
     const loc = this.locationHolder.getLocation();
+    const t = this;
+
+    
+
     return (
 
       <div>
@@ -144,24 +238,24 @@ class ActivityPage extends React.Component {
         <div className="card mb-3  ">
           <div className="card-header">
             <i className="fa fa-exclamation-circle"></i>&nbsp;Events</div>
-            <div className="card-body ">
-              <div className="table-responsive nohscroll">
-                <RemotePagination
-                  data={ data }
-                  page={ page }
-                  sizePerPage={ sizePerPage }
-                  totalSize={ totalSize }
-                  onTableChange={ this.handleTableChange }
-                  />
-                <br/>
-                <br/>
-                <br/>
-                <br/>
+          <div className="card-body ">
+            <div className="table-responsive nohscroll">
+              <RecentEventsList getRecentEvents={() => t.state["events"]} locationHolder={t.locationHolder} />
+              <div className="btn-group" role="group">
+                <button type="button" className="btn btn-secondary" onClick={t.onLeftClicked()} > <i className="fa fa-chevron-left" /></button>
+                <button type="button" className="btn btn-secondary" onClick={t.onRightClicked()} ><i className="fa fa-chevron-right" /></button>
+
               </div>
+              <div>
+                Events {t.state['minDisp'] } to {t.state['maxDisp']}
+
+              </div>
+
             </div>
           </div>
         </div>
-      );
+      </div>
+    );
   }
 }
 export default ActivityPage;

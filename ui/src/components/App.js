@@ -26,6 +26,13 @@ import * as routes from '../constants/routes';
 import withAuthentication from './withAuthentication';
 
 import firebase from '../firebase/firebase.js';
+import { library } from '@fortawesome/fontawesome-svg-core'
+import {faCheck, faTimes, faEye } from '@fortawesome/free-solid-svg-icons'
+
+library.add( faCheck)
+library.add( faTimes)
+library.add( faEye)
+
 
 class MainApp extends React.Component {
   constructor(props) {
@@ -40,7 +47,6 @@ class MainApp extends React.Component {
 
 
   setLocation(newLocation) {
-    console.log("Setting location to : " + newLocation);
     this.setState(
       {
         location : newLocation
@@ -58,8 +64,6 @@ class MainApp extends React.Component {
 
     const t = this;
     const {location} = this.state;
-
-    console.log("Rendering with location = : " +location);
     return (
       <Router>
         <div>

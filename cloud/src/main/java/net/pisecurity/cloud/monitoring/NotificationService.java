@@ -210,31 +210,34 @@ public class NotificationService implements CallStatusListener {
 	}
 
 	@Override
-	public void onCallMade(String number) {
+	public void onCallMade(String number, String message) {
 		CallRecord obs = new CallRecord();
 		obs.time = System.currentTimeMillis();
 		obs.number = number;
 		obs.label = "Call made";
+		obs.message = message;
 
 		persist(obs);
 	}
 
 	@Override
-	public void onCallComplete(boolean success, String answererNumber) {
+	public void onCallComplete(boolean success, String answererNumber, String message) {
 
 		if (success) {
 			CallRecord obs = new CallRecord();
 			obs.time = System.currentTimeMillis();
 			obs.number = answererNumber;
 			obs.label = "Call answered";
+			obs.message = message;
 			obs.answered = true;
 			persist(obs);
 		}
 	}
 
-	public void notifyHeartbeatTimeout(String s, NotificationConfig notificationConfig) {
-		sendTextMessage("Internet connection lost to the following location : " + s,
-				notificationConfig.notificationList);
+	public void notifyHeartbeatTimeout(String s, NotificationConfig notificationConfig) {		
+		sendVoiceMessage("Internet connection lost to the following location : " + s, notificationConfig.alarmNotificationList, notificationConfig.callRetries);
+		
+
 
 	}
 

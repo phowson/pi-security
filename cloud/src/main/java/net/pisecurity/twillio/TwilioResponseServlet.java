@@ -83,7 +83,7 @@ public class TwilioResponseServlet extends HttpServlet {
 			if ("Gather End".equals(req.getParameter("msg")) && "1".equals(req.getParameter("Digits"))) {
 				if (!status.notified && status.listener != null) {
 					try {
-						status.listener.onCallComplete(true, status.numbers[status.index]);
+						status.listener.onCallComplete(true, status.numbers[status.index], status.message);
 					} catch (Exception e) {
 						logger.error("Unexpected exception", e);
 					}

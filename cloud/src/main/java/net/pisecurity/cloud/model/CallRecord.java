@@ -6,4 +6,5 @@ public class CallRecord {
 	public long time;
 	public boolean answered;
 	public long sequenceId;
+	public String message;
 }

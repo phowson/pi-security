@@ -6,8 +6,9 @@
 	"serverConfig": {
 		"port": "8080",
 		"path": "/test/*",
-		"myUrl": "http://90.200.182.161:8080/test"
+		"myUrl": "http://90.212.108.172:8080/test"
 	},
+	
 	"locationId" : "test-1",
 	"twilioConfigFile":"./resources/config/twillio.prod.json"
 }

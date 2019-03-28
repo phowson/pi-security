@@ -88,11 +88,9 @@ class BootstrapNavigation extends React.Component {
   }
   render() {
 
-    console.log("Props in nav render: ")
-    console.log(this.props);
 
     return ( <nav className="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
-      <Link className="navbar-brand" to= "/">Pi Security</Link>
+      <Link className="navbar-brand" to= "/">Security System Replacement</Link>
 
       <NavbarToggler onClick={this.toggle} />
 

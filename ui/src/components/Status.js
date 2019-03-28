@@ -3,7 +3,86 @@ import firebase from '../firebase/firebase.js';
 import { Route, Link, withRouter } from 'react-router-dom';
 import * as routes from '../constants/routes';
 import * as helpers from '../helpers/datehelpers.js';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
+
+class RecentCallsList extends React.Component {
+  constructor(params) {
+    super();
+    this.getRecentCalls = params['getRecentCalls'];
+    this.locationHolder = params['locationHolder']
+  }
+
+  render() {
+    let l = this.getRecentCalls();
+    let c = this;
+
+    return (
+      <table
+        className="table-striped table-hover table-bordered table-condensed"
+        cellPadding="2px"
+      >
+        <thead>
+          <tr>
+            <th>
+              Time
+            </th>
+            <th>
+              Number
+            </th>
+            <th>
+              Comment
+            </th>
+            <th>
+              Message
+            </th>            
+            <th>
+              Answered
+            </th>
+          </tr>
+
+        </thead>
+        <tbody>
+          {
+
+            l ?
+              l.map((item) => {
+                return (
+                  <tr key={item.key}>
+                    <td key={item.key}>
+                      {item.time}
+                    </td>
+
+
+                    <td >
+                      {item.number}
+                    </td>
+
+                    <td >
+                      {item.label}
+                    </td>
+
+                    <td >
+                      <div style={{ "maxWidth":200 }} >
+                      {item.message}
+                      </div>
+                    </td>
+
+                    <td >
+                      {item.answered ? (<FontAwesomeIcon icon="check" />) : ""}
+                    </td>
+
+                  </tr>
+                )
+              })
+              : ""
+
+          }
+        </tbody>
+      </table>);
+  }
+
+}
 
 
 class RecentEventsList extends React.Component {
@@ -22,7 +101,7 @@ class RecentEventsList extends React.Component {
     return (
       <table
         className="table-striped table-hover table-bordered table-condensed"
-        cellPadding="5px"
+        cellPadding="2px"
       >
         <thead>
           <tr>
@@ -37,7 +116,7 @@ class RecentEventsList extends React.Component {
               Event Description
             </th>
             <th>
-              Could trigger an alarm
+              Can trigger alarm
             </th>
 
           </tr>
@@ -64,8 +143,8 @@ class RecentEventsList extends React.Component {
 
                     <td >
 
-                    <div style={(item.notify) ? { color: "red" } : {}} >
-                      {item.notify ? "Yes" : "No" }
+                      <div style={(item.notify) ? { color: "red" } : {}} >
+                        {item.notify ? (<FontAwesomeIcon icon="check" />) : ""}
 
                       </div>
                     </td>
@@ -179,7 +258,7 @@ class DeviceList extends React.Component {
     return (
       <table
         className="table-striped table-hover table-bordered table-condensed"
-        cellPadding="2pt"
+        cellPadding="2px"
       >
         <thead>
           <tr>
@@ -272,7 +351,14 @@ class StatusPage extends React.Component {
 
     this.state = {
       heartbeats: [],
+      calls: [],
+      events: []
     };
+
+
+    this.limitTo = 10;
+
+
   }
 
   componentWillUnmount() {
@@ -283,10 +369,8 @@ class StatusPage extends React.Component {
 
   queryRecentEvents(maxEventSeq) {
     var c = this;
-    const query2 = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/events").orderByChild("sequenceId").startAt(maxEventSeq).endAt(maxEventSeq + 20);
-    console.log(maxEventSeq);
+    const query2 = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/events").orderByChild("sequenceId").startAt(maxEventSeq).endAt(maxEventSeq + this.limitTo);
     query2.on("value", function (snapshot) {
-      console.log(snapshot);
       if (c._mounted) {
 
 
@@ -305,9 +389,41 @@ class StatusPage extends React.Component {
 
           });
 
-          console.log(events);
 
           c.setState({ events: events });
+
+
+          return false;
+
+        });
+      }
+    });
+  }
+
+  queryRecentCalls(maxEventSeq) {
+    var c = this;
+    const query2 = firebase.database().ref('/calls').orderByChild("sequenceId").startAt(maxEventSeq).endAt(maxEventSeq + this.limitTo);
+    query2.on("value", function (snapshot) {
+      if (c._mounted) {
+
+
+        var calls = [];
+
+
+        snapshot.forEach(function (childSnapshot) {
+          calls.push({
+            key: childSnapshot.key,
+            id: childSnapshot.key,
+            time: helpers.convertTS(childSnapshot.child("time").val()),
+            answered: childSnapshot.child("answered").val(),
+            label: childSnapshot.child("label").val(),
+            message: childSnapshot.child("message").val(),
+            number: childSnapshot.child("number").val(),
+
+          });
+
+
+          c.setState({ calls: calls });
 
 
           return false;
@@ -360,6 +476,13 @@ class StatusPage extends React.Component {
 
     );
 
+    const query4 = firebase.database().ref('/callSequence').on("value",
+      function (snapshot) {
+        c.queryRecentCalls(snapshot.val());
+
+      }
+
+    );
 
 
 
@@ -383,7 +506,7 @@ class StatusPage extends React.Component {
 
         <div className="card mb-3">
           <div className="card-header">
-            <i className="fa fa-table"></i>&nbsp;Current System Status at {loc}</div>
+            <i className="fa fa-eye"></i>&nbsp;Current System Status at {loc}</div>
           <div className="card-body">
             <div className="table-responsive">
               <DeviceList getHeartbeats={() => t.state["heartbeats"]} locationHolder={t.locationHolder} />
@@ -391,16 +514,33 @@ class StatusPage extends React.Component {
           </div>
         </div>
 
-
-        <div className="card mb-3">
-          <div className="card-header">
-            <i className="fa fa-table"></i>&nbsp;Recent events at {loc}</div>
-          <div className="card-body">
-            <div className="table-responsive">
-              <RecentEventsList getRecentEvents={() => t.state["events"]} locationHolder={t.locationHolder} />
+        <div class="row">
+          <div class="col">
+          <div className="card mb-3">
+            <div className="card-header">
+              <i className="fa fa-calendar"></i>&nbsp;Recent events at {loc}</div>
+            <div className="card-body">
+              <div className="table-responsive">
+                <RecentEventsList getRecentEvents={() => t.state["events"]} locationHolder={t.locationHolder} />
+              </div>
             </div>
           </div>
+          </div>
+
+          <div class="col">
+          <div className="card mb-3">
+            <div className="card-header">
+              <i className="fa fa-phone"></i>&nbsp;Recent calls at {loc}</div>
+            <div className="card-body">
+              <div className="table-responsive">
+                <RecentCallsList getRecentCalls={() => t.state["calls"]} locationHolder={t.locationHolder} />
+              </div>
+            </div>
+          </div>
+          </div>
         </div>
+
+
 
       </div>
 
