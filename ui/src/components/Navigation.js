@@ -72,7 +72,6 @@ class BootstrapNavigation extends React.Component {
 
 
   fold() {
-    console.log("Fold")
 
     this.setState({
       isOpen: false

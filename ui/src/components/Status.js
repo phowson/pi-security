@@ -1,7 +1,6 @@
 import React from 'react';
 import firebase from '../firebase/firebase.js';
 import { Route, Link, withRouter } from 'react-router-dom';
-import * as routes from '../constants/routes';
 import * as helpers from '../helpers/datehelpers.js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import AuthUserContext from './AuthUserContext.js'
@@ -175,7 +174,6 @@ class DeviceList extends React.Component {
     this.getHeartbeats = params['getHeartbeats'];
     this.locationHolder = params['locationHolder'];
     this.username = params['username'];
-    console.log(this.username);
     this.onArmClicked = this.onArmClicked.bind(this);
     this.onDisarmClicked = this.onDisarmClicked.bind(this);
     this.onTriggerBell = this.onTriggerBell.bind(this);
@@ -365,12 +363,13 @@ class StatusPage extends React.Component {
           });
 
 
-          c.setState({ events: events });
+
 
 
           return false;
 
         });
+        c.setState({ events: events });        
       }
     });
   }
@@ -398,12 +397,13 @@ class StatusPage extends React.Component {
           });
 
 
-          c.setState({ calls: calls });
+
 
 
           return false;
 
         });
+        c.setState({ calls: calls });        
       }
     });
   }
@@ -434,11 +434,12 @@ class StatusPage extends React.Component {
           });
 
 
-          c.setState({ heartbeats: heartbeats });
+
 
           return false;
 
         });
+        c.setState({ heartbeats: heartbeats });        
       }
     });
 

@@ -1,7 +1,4 @@
 import React from 'react';
-import BootstrapTable from 'react-bootstrap-table-next';
-import paginationFactory from 'react-bootstrap-table2-paginator';
-import LocationContext from './LocationContext';
 import { Route, Link, withRouter } from 'react-router-dom';
 import firebase from '../firebase/firebase.js';
 import * as helpers from '../helpers/datehelpers.js';
@@ -161,12 +158,13 @@ class ActivityPage extends React.Component {
 
           });
 
-          c.setState({ events: events, minDisp : -minDisp, maxDisp: -maxDisp });
+
 
 
           return false;
 
         });
+        c.setState({ events: events, minDisp : -minDisp, maxDisp: -maxDisp });        
       }
     });
   }
