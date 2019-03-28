@@ -35,7 +35,7 @@ class RecentCallsList extends React.Component {
             </th>
             <th>
               Message
-            </th>            
+            </th>
             <th>
               Answered
             </th>
@@ -63,8 +63,8 @@ class RecentCallsList extends React.Component {
                     </td>
 
                     <td >
-                      <div style={{ "maxWidth":200 }} >
-                      {item.message}
+                      <div style={{ "maxWidth": 200 }} >
+                        {item.message}
                       </div>
                     </td>
 
@@ -315,13 +315,15 @@ class DeviceList extends React.Component {
 
                     <td>
 
-                      <button onClick={c.onArmClicked(item.key)}>Arm</button>
-                      <div style={{ width: 5, height: "auto", display: "inline-block" }} />
-                      <button onClick={c.onDisarmClicked(item.key)}>Disarm</button>
-                      <div style={{ width: 5, height: "auto", display: "inline-block" }} />
-                      <button onClick={c.onTriggerBell(item.key)}>Trigger bell</button>
-                      <div style={{ width: 5, height: "auto", display: "inline-block" }} />
-                      <button onClick={c.onReset(item.key)}>Reset</button>
+                      <div className="btn-group" role="group">
+                        <button className="btn btn-primary" onClick={c.onArmClicked(item.key)}>Arm</button>
+                        <div style={{ width: 5, height: "auto", display: "inline-block" }} />
+                        <button className="btn btn-primary" onClick={c.onDisarmClicked(item.key)}>Disarm</button>
+                        <div style={{ width: 5, height: "auto", display: "inline-block" }} />
+                        <button className="btn btn-primary" onClick={c.onTriggerBell(item.key)}>Trigger bell</button>
+                        <div style={{ width: 5, height: "auto", display: "inline-block" }} />
+                        <button className="btn btn-primary" onClick={c.onReset(item.key)}>Reset</button>
+                      </div>
 
                     </td>
 
@@ -514,29 +516,29 @@ class StatusPage extends React.Component {
           </div>
         </div>
 
-        <div class="row">
-          <div class="col">
-          <div className="card mb-3">
-            <div className="card-header">
-              <i className="fa fa-calendar"></i>&nbsp;Recent events at {loc}</div>
-            <div className="card-body">
-              <div className="table-responsive">
-                <RecentEventsList getRecentEvents={() => t.state["events"]} locationHolder={t.locationHolder} />
+        <div className="row">
+          <div className="col">
+            <div className="card mb-3">
+              <div className="card-header">
+                <i className="fa fa-calendar"></i>&nbsp;Recent events at {loc}</div>
+              <div className="card-body">
+                <div className="table-responsive">
+                  <RecentEventsList getRecentEvents={() => t.state["events"]} locationHolder={t.locationHolder} />
+                </div>
               </div>
             </div>
-          </div>
           </div>
 
-          <div class="col">
-          <div className="card mb-3">
-            <div className="card-header">
-              <i className="fa fa-phone"></i>&nbsp;Recent calls at {loc}</div>
-            <div className="card-body">
-              <div className="table-responsive">
-                <RecentCallsList getRecentCalls={() => t.state["calls"]} locationHolder={t.locationHolder} />
+          <div className="col">
+            <div className="card mb-3">
+              <div className="card-header">
+                <i className="fa fa-phone"></i>&nbsp;Recent calls at {loc}</div>
+              <div className="card-body">
+                <div className="table-responsive">
+                  <RecentCallsList getRecentCalls={() => t.state["calls"]} locationHolder={t.locationHolder} />
+                </div>
               </div>
             </div>
-          </div>
           </div>
         </div>
 

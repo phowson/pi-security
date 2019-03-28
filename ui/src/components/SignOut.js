@@ -7,7 +7,6 @@ import * as routes from '../constants/routes';
 class SignOutButtonInner extends Component {
   constructor(props) {
     super(props);
-    console.log(props);
   }
 
   render() {
