@@ -44,20 +44,20 @@ const LocationsSideNav = () =>
     </Link>
   </li>
   <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Control">
-    <Link className="nav-link" to= {routes.CONTROL}>
+    <Link className="nav-link" to= {routes.DEVICEHEALTH}>
       <i className="fa fa-fw fa-wrench"></i>
       <span className="nav-link-text">Device Health</span>
     </Link>
   </li>
   <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Settings">
-    <Link className="nav-link" to={routes.SETTINGS}>
+    <Link className="nav-link" to={routes.DEVICESETTINGS}>
       <i className="fa fa-fw fa-cogs"></i>
       <span className="nav-link-text">Device setup</span>
     </Link>
   </li>
 
   <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Settings">
-    <Link className="nav-link" to={routes.SETTINGS}>
+    <Link className="nav-link" to={routes.MONITORINGSETTINGS}>
       <i className="fa fa-fw fa-cogs"></i>
       <span className="nav-link-text">Monitoring setup</span>
     </Link>
@@ -124,8 +124,9 @@ class BootstrapNavigation extends React.Component {
             <Route exact path={routes.STATUS} component={() => <LocationsSideNav />} />
             <Route exact path={routes.ACTIVITY} component={() => <LocationsSideNav />} />
             <Route exact path={routes.STATS} component={() => <LocationsSideNav />} />
-            <Route exact path={routes.CONTROL} component={() => <LocationsSideNav />} />
-            <Route exact path={routes.SETTINGS} component={() => <LocationsSideNav />} />
+            <Route exact path={routes.DEVICESETTINGS} component={() => <LocationsSideNav />} />
+            <Route exact path={routes.MONITORINGSETTINGS} component={() => <LocationsSideNav />} />
+            <Route exact path={routes.DEVICEHEALTH} component={() => <LocationsSideNav />} />
           </div>
 
           : <div/> }

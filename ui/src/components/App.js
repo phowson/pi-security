@@ -16,8 +16,11 @@ import AccountPage from './Account';
 import StatusPage from './Status';
 import ActivityPage from './Activity';
 import StatsPage from './Stats';
-import ControlPage from './Control';
-import SettingsPage from './Settings';
+
+import DeviceSettingsPage from './DeviceSettings';
+import MonitorSettingsPage from './MonitorSettings';
+import DeviceHealthPage from './DeviceHealth';
+
 
 
 import LocationContext from './LocationContext';
@@ -85,8 +88,11 @@ class MainApp extends React.Component {
               <Route exact path={routes.STATUS} component={() => <StatusPage locationHolder = {t}/>} />
               <Route exact path={routes.ACTIVITY} component={() => <ActivityPage locationHolder = {t}/>} />
               <Route exact path={routes.STATS} component={() => <StatsPage locationHolder = {t}/>} />
-              <Route exact path={routes.CONTROL} component={() => <ControlPage locationHolder = {t}/>} />
-              <Route exact path={routes.SETTINGS} component={() => <SettingsPage locationHolder = {t}/>} />
+
+
+              <Route exact path={routes.DEVICESETTINGS} component={() => <DeviceSettingsPage locationHolder = {t}/>} />
+              <Route exact path={routes.MONITORINGSETTINGS} component={() => <MonitorSettingsPage locationHolder = {t}/>} />
+              <Route exact path={routes.DEVICEHEALTH} component={() => <DeviceHealthPage locationHolder = {t}/>} />
 
 
             </div>
