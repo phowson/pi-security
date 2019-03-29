@@ -31,6 +31,7 @@ import net.pisecurity.twillio.TwilioAccountDetails;
 import net.pisecurity.twillio.TwilioSMS;
 import net.pisecurity.twillio.TwilioVoiceAlertService;
 import net.pisecurity.util.DoNothingRunnable;
+import net.pisecurity.util.FirebaseEventPersistenceService;
 import net.pisecurity.util.NamedThreadFactory;
 
 public class App implements UncaughtExceptionHandler, java.util.concurrent.RejectedExecutionHandler {
@@ -81,7 +82,7 @@ public class App implements UncaughtExceptionHandler, java.util.concurrent.Rejec
 		notificationService = new NotificationService(voiceAlertService, new TwilioSMS(twilioAccountDetails), executor,
 				database.child("calls"), database.child("callSequence"));
 
-		database.child("locations").addChildEventListener(new ChildEventListener() {
+		database.child("allLocations").addChildEventListener(new ChildEventListener() {
 
 			@Override
 			public void onChildRemoved(DataSnapshot snapshot) {
@@ -109,8 +110,20 @@ public class App implements UncaughtExceptionHandler, java.util.concurrent.Rejec
 				DataSnapshot s = snapshot;
 				LocationMonitoringService service = locations.get(s.getKey());
 				if (service == null) {
-					logger.info("Configuring for location : " + s.getKey());
-					service = new LocationMonitoringService(s.getKey(), mainExecutor, appConfig, s.getRef(),
+					String name = s.child("name").getValue().toString();
+					logger.info("Configuring for location : " + name);
+					
+					DatabaseReference thisLoc = database.child("locations").child(name);
+					
+					DatabaseReference eventSequenceRef = thisLoc.child("eventsSequence");
+					
+					FirebaseEventPersistenceService eventPersistenceService = new FirebaseEventPersistenceService(
+							eventSequenceRef, 
+							thisLoc.child("events")
+							);
+					
+					service = new LocationMonitoringService(name, mainExecutor, appConfig, thisLoc,
+							eventPersistenceService,
 							notificationService);
 					locations.put(s.getKey(), service);
 				}

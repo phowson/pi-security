@@ -44,16 +44,17 @@ public class FirebasePersistenceService
 	private long lastHeartbeatPersisted;
 	private long lastHbTime;
 	private String deviceId;
-
-
+	private DatabaseReference dhtSequenceRef;
 
 	public FirebasePersistenceService(DatabaseReference database, DatabaseReference eventsRef,
 			DatabaseReference eventsSequenceRef, DatabaseReference heartbeatRef, DatabaseReference requestedStateRef,
-			DatabaseReference dhtRef, String deviceId) {
+
+			DatabaseReference dhtSequenceRef, DatabaseReference dhtRef, String deviceId) {
 		this.eventsRef = eventsRef;
 		this.eventsSequenceRef = eventsSequenceRef;
 		this.heartbeatRef = heartbeatRef;
 		this.requestedStateRef = requestedStateRef;
+		this.dhtSequenceRef = dhtSequenceRef;
 		this.dhtRef = dhtRef;
 		this.deviceId = deviceId;
 		retryScheduler = new ScheduledThreadPoolExecutor(1, new NamedThreadFactory("Firebase Retry", this, false));
@@ -124,10 +125,9 @@ public class FirebasePersistenceService
 	private void persistInternal(Event event, int retries) {
 
 		eventsSequenceRef.runTransaction(new Transaction.Handler() {
-			private long currentEventSequence=1;
-			public Transaction.Result doTransaction(MutableData mutableData) {
+			private long currentSequence = 1;
 
-				
+			public Transaction.Result doTransaction(MutableData mutableData) {
 
 				Number n = ((Number) mutableData.getValue());
 				if (n != null) {
@@ -136,15 +136,12 @@ public class FirebasePersistenceService
 
 					event.sequenceId = seq;
 					mutableData.setValue(--seq);
-					
-					
-										
-					if (seq<currentEventSequence) {
-						currentEventSequence = seq;
-					
-	
+
+					if (seq < currentSequence) {
+						currentSequence = seq;
+
 						eventsRef.push().setValue(event, new CompletionListener() {
-	
+
 							@Override
 							public void onComplete(DatabaseError databaseError, DatabaseReference ref) {
 								if (databaseError == null) {
@@ -157,14 +154,13 @@ public class FirebasePersistenceService
 											+ ", retries = " + retries);
 									onConnectedChanged(false);
 									retry(event, retries + 1);
-	
+
 								}
 							}
 						});
 					}
 
-					
-				} 
+				}
 				return Transaction.success(mutableData);
 
 			}
@@ -211,25 +207,59 @@ public class FirebasePersistenceService
 
 	@Override
 	public void persist(DHTObservation obs) {
-		dhtRef.push().runTransaction(new Transaction.Handler() {
+
+		dhtSequenceRef.runTransaction(new Transaction.Handler() {
+			private long currentDhtSequence = 1;
+
 			public Transaction.Result doTransaction(MutableData mutableData) {
-				mutableData.setValue(obs);
+
+				Number n = ((Number) mutableData.getValue());
+				if (n != null) {
+					long seq;
+					seq = n.longValue();
+
+					obs.sequenceId = seq;
+					mutableData.setValue(--seq);
+
+					if (seq < currentDhtSequence) {
+						currentDhtSequence = seq;
+
+						dhtRef.push().runTransaction(new Transaction.Handler() {
+							public Transaction.Result doTransaction(MutableData mutableData) {
+								mutableData.setValue(obs);
+								return Transaction.success(mutableData);
+							}
+
+							public void onComplete(DatabaseError databaseError, boolean complete,
+									DataSnapshot dataSnapshot) {
+								if (databaseError == null && complete) {
+									if (logger.isDebugEnabled()) {
+										logger.debug("observation persisted OK");
+									}
+									onConnectedChanged(true);
+								} else {
+									logger.fatal("Error reported during save of heartbeat. Cannot continue"
+											+ databaseError + ", complete = " + complete);
+									onConnectedChanged(false);
+
+								}
+							}
+						});
+					}
+				}
 				return Transaction.success(mutableData);
 			}
+			
 
-			public void onComplete(DatabaseError databaseError, boolean complete, DataSnapshot dataSnapshot) {
+			@Override
+			public void onComplete(DatabaseError databaseError, boolean complete, DataSnapshot currentData) {
 				if (databaseError == null && complete) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("observation persisted OK");
+					if (!connected) {
+						logger.info("Internet connection regained");
 					}
 					onConnectedChanged(true);
-				} else {
-					logger.fatal("Error reported during save of heartbeat. Cannot continue" + databaseError
-							+ ", complete = " + complete);
-					onConnectedChanged(false);
-
-				}
-			}
+				} 
+			}			
 		});
 
 	}
@@ -289,7 +319,7 @@ public class FirebasePersistenceService
 				et = EventType.INTERNET_OFFLINE;
 			}
 
-			listener.onEvent(new Event(System.currentTimeMillis(), 1, label, et, label, this.deviceId,
+			listener.onEvent(new Event(System.currentTimeMillis(), -1, label, et, label, this.deviceId,
 					EventAlertType.NONE, true));
 		}
 

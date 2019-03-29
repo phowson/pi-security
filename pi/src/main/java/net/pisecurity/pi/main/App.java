@@ -85,6 +85,7 @@ public class App implements UncaughtExceptionHandler, Runnable, Heartbeater {
 	
 	private long startupTime;
 	private DatabaseReference eventsSequenceRef;
+	private DatabaseReference dhtSeqRef;
 
 	public App(String configFileName, IOInterface ioInterface, AlarmBellController alarmBellController,
 			DHT11Factory dht11Factory) throws FileNotFoundException, IOException {
@@ -116,11 +117,13 @@ public class App implements UncaughtExceptionHandler, Runnable, Heartbeater {
 
 		eventsRef = locationRef.child("events");
 		eventsSequenceRef = locationRef.child("eventsSequence");
+		
+		dhtSeqRef = locationRef.child("humidityTemperatureSequence");
 		dhtRef = locationRef.child("humidityTemperature");
 
 
 		FirebasePersistenceService persistenceService = new FirebasePersistenceService(database, eventsRef, eventsSequenceRef, hbRef,
-				commandRef, dhtRef, appConfig.deviceId);
+				commandRef, dhtSeqRef, dhtRef, appConfig.deviceId);
 		this.internetStatus = persistenceService;
 		this.persistenceService = persistenceService;
 		this.eventListener = new PersistingEventListener(persistenceService);

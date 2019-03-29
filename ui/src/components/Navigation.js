@@ -46,13 +46,20 @@ const LocationsSideNav = () =>
   <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Control">
     <Link className="nav-link" to= {routes.CONTROL}>
       <i className="fa fa-fw fa-wrench"></i>
-      <span className="nav-link-text">Control</span>
+      <span className="nav-link-text">Device Health</span>
     </Link>
   </li>
   <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Settings">
     <Link className="nav-link" to={routes.SETTINGS}>
       <i className="fa fa-fw fa-cogs"></i>
-      <span className="nav-link-text">Settings</span>
+      <span className="nav-link-text">Device setup</span>
+    </Link>
+  </li>
+
+  <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Settings">
+    <Link className="nav-link" to={routes.SETTINGS}>
+      <i className="fa fa-fw fa-cogs"></i>
+      <span className="nav-link-text">Monitoring setup</span>
     </Link>
   </li>
 

@@ -2,6 +2,7 @@ package net.pisecurity.model;
 
 public class DHTObservation {
 	public long time;
+	public long sequenceId;
 	public String location;
 	public String deviceId;
 	public double temparatureCelcius;

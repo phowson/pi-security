@@ -105,7 +105,7 @@ public class NotificationService implements CallStatusListener {
 	public void notifyAutoDisarm(NotificationConfig notificationConfig) {
 
 		if (notificationConfig.sendTextsOnArmDisarm) {
-			sendTextMessage("System automatically disarmed", notificationConfig.notificationList);
+			sendTextMessage("System disarmed", notificationConfig.notificationList);
 		}
 	}
 
@@ -120,7 +120,7 @@ public class NotificationService implements CallStatusListener {
 
 	public void notifyAutoArm(NotificationConfig notificationConfig) {
 		if (notificationConfig.sendTextsOnArmDisarm) {
-			sendTextMessage("System automatically armed", notificationConfig.notificationList);
+			sendTextMessage("System armed", notificationConfig.notificationList);
 		}
 	}
 

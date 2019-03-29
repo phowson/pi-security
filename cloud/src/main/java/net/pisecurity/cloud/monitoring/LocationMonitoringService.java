@@ -23,6 +23,8 @@ import net.pisecurity.cloud.model.ExampleFactory;
 import net.pisecurity.cloud.model.NotificationConfig;
 import net.pisecurity.model.Event;
 import net.pisecurity.model.EventAlertType;
+import net.pisecurity.model.EventPersistenceService;
+import net.pisecurity.model.EventType;
 import net.pisecurity.model.Heartbeat;
 import net.pisecurity.model.MonitoredPinConfig;
 import net.pisecurity.model.MonitoringConfig;
@@ -64,9 +66,15 @@ public class LocationMonitoringService implements Runnable {
 
 	private boolean heartbeatAlerted;
 
+	private EventPersistenceService eventPersistenceService;
+
 	public LocationMonitoringService(String locationId, ScheduledExecutorService mainExecutor, AppConfig appConfig,
-			DatabaseReference locationRef, NotificationService notificationService) {
+			DatabaseReference locationRef, 
+			
+			EventPersistenceService eventPersistenceService,
+			NotificationService notificationService) {
 		this.location = locationId;
+		this.eventPersistenceService = eventPersistenceService;
 		this.mainExecutor = mainExecutor;
 		this.notificationService = notificationService;
 		monitoringConfigRef = locationRef.child("cloudMonitoringConfig");
@@ -191,10 +199,13 @@ public class LocationMonitoringService implements Runnable {
 
 				break;
 
+				
+			case SYSTEM_MANUAL_ARMED:
 			case SYSTEM_AUTO_ARMED:
 				notifyAutoArm();
 				break;
 
+			case SYSTEM_MANUAL_DISARMED:
 			case SYSTEM_AUTO_DISARMED:
 				notifyAutoDisarm();
 				break;
@@ -257,6 +268,12 @@ public class LocationMonitoringService implements Runnable {
 
 		if (force || (System.currentTimeMillis() - batchStart >= monitoringConfig.alarmDelaySeconds * 1000 && armed)) {
 			logger.info("Sending alert batch : " + events);
+			
+			this.eventPersistenceService.persist(new Event(System.currentTimeMillis(), -1, "Users notified", EventType.USERS_NOTIFIED_OF_ALARM, 					
+					"Users notified by cloud service",
+					"Cloud Service", EventAlertType.NONE, false));
+			
+			
 			notificationService.notifyEvents(notificationConfig, events);
 			batchingEvents = false;
 			events.clear();

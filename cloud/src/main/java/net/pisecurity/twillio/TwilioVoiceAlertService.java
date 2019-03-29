@@ -75,8 +75,13 @@ public class TwilioVoiceAlertService implements UncaughtExceptionHandler, Runnab
 			throws URISyntaxException, ClientProtocolException, IOException {
 
 		logger.info("Starting call. Will try " + Arrays.toString(numbers) + " with message " + message);
-		CallStatus callStatus = new CallStatus(System.currentTimeMillis(), numbers, message, listener, 0, sendSms);
-		doCall(numbers[0], callStatus);
+		
+		if ("0".equals(numbers[0]) || numbers[0]==null) {
+			logger.info("Insufficinet configuration to make this call");	
+		} else {
+			CallStatus callStatus = new CallStatus(System.currentTimeMillis(), numbers, message, listener, 0, sendSms);
+			doCall(numbers[0], callStatus);
+		}
 
 	}
 

@@ -37,6 +37,9 @@ class RecentEventsList extends React.Component {
               Event Description
             </th>
             <th>
+              Comment
+            </th>            
+            <th>
               Can trigger alarm
             </th>
             <th>
@@ -73,7 +76,9 @@ class RecentEventsList extends React.Component {
                     <td >
                       {item.label}
                     </td>
-
+                    <td >
+                      {item.comment}
+                    </td>
                     <td >
 
                       <div style={(item.notify) ? { color: "red" } : {}} >
@@ -152,6 +157,7 @@ class ActivityPage extends React.Component {
             eventType: childSnapshot.child("type").val(),
             deviceId: childSnapshot.child("deviceId").val(),
             label: childSnapshot.child("label").val(),
+            comment: childSnapshot.child("comment").val(),
             notify: childSnapshot.child("notify").val(),
             ioPin: childSnapshot.child("gpioPin").val(),
             alertType: childSnapshot.child("alertType").val(),
@@ -245,7 +251,7 @@ class ActivityPage extends React.Component {
 
               </div>
               <div>
-                Events {t.state['minDisp'] } to {t.state['maxDisp']}
+                Events {t.state['minDisp']>0 ? t.state['minDisp'] : 0 } to {t.state['maxDisp']}
 
               </div>
 
