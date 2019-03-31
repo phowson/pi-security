@@ -45,10 +45,34 @@ const LocationsSideNav = () =>
   </li>
   <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Control">
     <Link className="nav-link" to= {routes.DEVICEHEALTH}>
-      <i className="fa fa-fw fa-wrench"></i>
+      <i className="fa fa-fw fa-heartbeat"></i>
       <span className="nav-link-text">Device Health</span>
+    </Link> 
+  </li>
+
+  <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Control">
+    <Link className="nav-link" to= {routes.ARMDISARM}>
+      <i className="fa fa-fw fa-power-off"></i>
+      <span className="nav-link-text">Automatic Arm / Disarm</span>
     </Link>
   </li>
+
+
+  <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Control">
+    <Link className="nav-link" to= {routes.PERMISSIONS}>
+      <i className="fa fa-fw fa-lock"></i>
+      <span className="nav-link-text">Permissions</span>
+    </Link>
+  </li>
+
+
+  <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Control">
+    <Link className="nav-link" to= {routes.CALLLOG}>
+      <i className="fa fa-fw fa-phone"></i>
+      <span className="nav-link-text">Call log</span>
+    </Link>
+  </li>
+
   <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Settings">
     <Link className="nav-link" to={routes.DEVICESETTINGS}>
       <i className="fa fa-fw fa-cogs"></i>
@@ -58,7 +82,7 @@ const LocationsSideNav = () =>
 
   <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Settings">
     <Link className="nav-link" to={routes.MONITORINGSETTINGS}>
-      <i className="fa fa-fw fa-cogs"></i>
+      <i className="fa fa-fw fa-sliders"></i>
       <span className="nav-link-text">Monitoring setup</span>
     </Link>
   </li>
@@ -123,10 +147,16 @@ class BootstrapNavigation extends React.Component {
           <div>
             <Route exact path={routes.STATUS} component={() => <LocationsSideNav />} />
             <Route exact path={routes.ACTIVITY} component={() => <LocationsSideNav />} />
+            <Route exact path={routes.CALLLOG} component={() => <LocationsSideNav />} />
             <Route exact path={routes.STATS} component={() => <LocationsSideNav />} />
+            <Route exact path={routes.DEVICEHEALTH} component={() => <LocationsSideNav />} />
+            <Route exact path={routes.ARMDISARM} component={() => <LocationsSideNav />} />
+            <Route exact path={routes.PERMISSIONS} component={() => <LocationsSideNav />} />
             <Route exact path={routes.DEVICESETTINGS} component={() => <LocationsSideNav />} />
             <Route exact path={routes.MONITORINGSETTINGS} component={() => <LocationsSideNav />} />
-            <Route exact path={routes.DEVICEHEALTH} component={() => <LocationsSideNav />} />
+            
+            
+            
           </div>
 
           : <div/> }

@@ -21,6 +21,9 @@ import DeviceSettingsPage from './DeviceSettings';
 import MonitorSettingsPage from './MonitorSettings';
 import DeviceHealthPage from './DeviceHealth';
 
+import PermissionsPage from './Permissions';
+import CallLogPage from './CallLog';
+import ArmDisarmPage from './ArmDisarm';
 
 
 import LocationContext from './LocationContext';
@@ -93,6 +96,11 @@ class MainApp extends React.Component {
               <Route exact path={routes.DEVICESETTINGS} component={() => <DeviceSettingsPage locationHolder = {t}/>} />
               <Route exact path={routes.MONITORINGSETTINGS} component={() => <MonitorSettingsPage locationHolder = {t}/>} />
               <Route exact path={routes.DEVICEHEALTH} component={() => <DeviceHealthPage locationHolder = {t}/>} />
+
+              <Route exact path={routes.ARMDISARM} component={() => <ArmDisarmPage locationHolder = {t}/>} />
+
+              <Route exact path={routes.PERMISSIONS} component={() => <PermissionsPage locationHolder = {t}/>} />
+              <Route exact path={routes.CALLLOG} component={() => <CallLogPage locationHolder = {t}/>} />
 
 
             </div>
