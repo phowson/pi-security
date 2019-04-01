@@ -1,5 +1,4 @@
 import React from 'react';
-import LocationContext from './LocationContext';
 import { Route, Link, withRouter } from 'react-router-dom';
 import firebase from '../firebase/firebase.js';
 import * as helpers from '../helpers/datehelpers.js';
@@ -225,9 +224,6 @@ class StatsPage extends React.Component {
       pieLabels.push(k);
       pieData.push(v);
     });
-
-    console.log(pieLabels);
-    console.log(pieData);
 
     var dataPie = {
       labels: pieLabels,
