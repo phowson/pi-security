@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Link,  withRouter, } from 'react-router-dom';
+import { Link, withRouter, } from 'react-router-dom';
 
 
 import { auth } from '../firebase';
@@ -18,10 +18,24 @@ const byPropKey = (propertyName, value) => () => ({
 
 
 const SignUpPage = ({ history }) =>
-<div>
-  <h1>SignUp</h1>
-  <SignUpForm history={history} />
-</div>
+  <div>
+    <div>
+      <ol className="breadcrumb">
+        <li className="breadcrumb-item">
+          <Link to="signup">Sign Up</Link>
+        </li>
+      </ol>
+
+      <div className="card mb-3">
+        <div className="card-header">
+          New Account Details
+        </div>
+        <div className="card-body">
+          <SignUpForm history={history} />
+        </div>
+      </div>
+    </div>
+  </div>
 
 class SignUpForm extends Component {
   constructor(props) {
@@ -41,13 +55,13 @@ class SignUpForm extends Component {
     } = this.props;
 
     auth.doCreateUserWithEmailAndPassword(email, passwordOne)
-    .then(authUser => {
-      this.setState(() => ({ ...INITIAL_STATE }));
-      history.push(routes.LOCATIONS);
-    })
-    .catch(error => {
-      this.setState(byPropKey('error', error));
-    });
+      .then(authUser => {
+        this.setState(() => ({ ...INITIAL_STATE }));
+        history.push(routes.LOCATIONS);
+      })
+      .catch(error => {
+        this.setState(byPropKey('error', error));
+      });
 
     event.preventDefault();
   }
@@ -62,10 +76,10 @@ class SignUpForm extends Component {
     } = this.state;
 
     const isInvalid =
-    passwordOne !== passwordTwo ||
-    passwordOne === '' ||
-    email === '' ||
-    username === '';
+      passwordOne !== passwordTwo ||
+      passwordOne === '' ||
+      email === '' ||
+      username === '';
 
 
 
@@ -76,41 +90,41 @@ class SignUpForm extends Component {
           onChange={event => this.setState(byPropKey('username', event.target.value))}
           type="text"
           placeholder="Full Name"
-          />
+        />
         <input
           value={email}
           onChange={event => this.setState(byPropKey('email', event.target.value))}
           type="text"
           placeholder="Email Address"
-          />
+        />
         <input
           value={passwordOne}
           onChange={event => this.setState(byPropKey('passwordOne', event.target.value))}
           type="password"
           placeholder="Password"
-          />
+        />
         <input
           value={passwordTwo}
           onChange={event => this.setState(byPropKey('passwordTwo', event.target.value))}
           type="password"
           placeholder="Confirm Password"
-          />
-        <button type="submit"  disabled={isInvalid}>
+        />
+        <button type="submit" disabled={isInvalid}>
           Sign Up
         </button>
 
-        { error && <p>{error.message}</p> }
+        {error && <p>{error.message}</p>}
       </form>
     );
   }
 }
 
 const SignUpLink = () =>
-<p>
-  Don't have an account?
+  <p>
+    Don't have an account?
   {' '}
-  <Link to={routes.SIGN_UP}>Sign Up</Link>
-</p>
+    <Link to={routes.SIGN_UP}>Sign Up</Link>
+  </p>
 
 export default withRouter(SignUpPage);
 

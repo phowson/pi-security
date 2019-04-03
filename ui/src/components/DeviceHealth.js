@@ -91,6 +91,12 @@ class DeviceHealthPage extends React.Component {
 
   }
 
+  
+  componentWillUnmount() {
+    this._mounted = false;
+  }
+
+
   runQuery() {
     const c = this;
     const query3 = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/humidityTemperatureSequence").on("value",
@@ -219,6 +225,15 @@ class DeviceHealthPage extends React.Component {
 
 
       {out}
+
+      <div className="card mb-3">
+          <div className="card-header">
+            <i className="fa fa-thermometer-quarter"></i>&nbsp;Current Device Status at {loc}</div>
+          <div className="card-body">
+            All devices in normal bounds
+          </div>
+
+      </div>
 
     </div>
 

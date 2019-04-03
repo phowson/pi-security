@@ -5,8 +5,22 @@ import { auth } from '../firebase';
 
 const PasswordForgetPage = () =>
   <div>
-    <h1>PasswordForget</h1>
-    <PasswordForgetForm />
+    <div>
+      <ol className="breadcrumb">
+        <li className="breadcrumb-item">
+          <Link to="signin">Forgot Password</Link>
+        </li>
+      </ol>
+
+      <div className="card mb-3">
+        <div className="card-header">
+          Reset Password
+    </div>
+        <div className="card-body">
+          <PasswordForgetForm />
+        </div>
+      </div>
+    </div>
   </div>
 
 const byPropKey = (propertyName, value) => () => ({
@@ -59,7 +73,7 @@ class PasswordForgetForm extends Component {
           Reset My Password
         </button>
 
-        { error && <p>{error.message}</p> }
+        {error && <p>{error.message}</p>}
       </form>
     );
   }
