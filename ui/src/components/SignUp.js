@@ -82,36 +82,68 @@ class SignUpForm extends Component {
       username === '';
 
 
+    var labelStyle = {
+
+        /* To make sure that all labels have the same size and are properly aligned */
+        display: 'inline-block',
+        width: '150px',
+        'text-align': 'right'
+
+
+    
+    };
+
 
     return (
       <form onSubmit={this.onSubmit}>
-        <input
-          value={username}
-          onChange={event => this.setState(byPropKey('username', event.target.value))}
-          type="text"
-          placeholder="Full Name"
-        />
-        <input
-          value={email}
-          onChange={event => this.setState(byPropKey('email', event.target.value))}
-          type="text"
-          placeholder="Email Address"
-        />
-        <input
-          value={passwordOne}
-          onChange={event => this.setState(byPropKey('passwordOne', event.target.value))}
-          type="password"
-          placeholder="Password"
-        />
-        <input
-          value={passwordTwo}
-          onChange={event => this.setState(byPropKey('passwordTwo', event.target.value))}
-          type="password"
-          placeholder="Confirm Password"
-        />
-        <button type="submit" disabled={isInvalid}>
-          Sign Up
+        <div>
+          <label style = {labelStyle} for="name">Full name&nbsp;</label>
+
+          <input
+            value={username}
+            onChange={event => this.setState(byPropKey('username', event.target.value))}
+            type="text"
+            placeholder="Full Name"
+          />
+        </div>
+
+
+        <div>
+          <label style = {labelStyle} for="name">E-mail address&nbsp;</label>
+          <input
+            value={email}
+            onChange={event => this.setState(byPropKey('email', event.target.value))}
+            type="text"
+            placeholder="Email Address"
+          />
+        </div>
+
+        <div>
+          <label style = {labelStyle} for="name">Password&nbsp;</label>
+          <input
+            value={passwordOne}
+            onChange={event => this.setState(byPropKey('passwordOne', event.target.value))}
+            type="password"
+            placeholder="Password"
+          />
+        </div>
+
+        <div>
+          <label style = {labelStyle} for="name">Re-enter password&nbsp;</label>
+          <input
+            value={passwordTwo}
+            onChange={event => this.setState(byPropKey('passwordTwo', event.target.value))}
+            type="password"
+            placeholder="Confirm Password"
+          />
+
+        </div>
+
+        <div className="btn-group" role="group">
+          <button className="btn btn-primary" type="submit" disabled={isInvalid}>
+            Sign Up
         </button>
+        </div>
 
         {error && <p>{error.message}</p>}
       </form>
