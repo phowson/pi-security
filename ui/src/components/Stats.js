@@ -21,6 +21,7 @@ class StatsPage extends React.Component {
       frequencyTable: new Map(),
       hourOfDayTable: new Map(),
       dayOfWeekTable: new Map(),
+      perDayOfWeekTable: new Map()
     };
 
   }
@@ -44,37 +45,39 @@ class StatsPage extends React.Component {
         var hourOfDayTable = new Map();
         var frequencyTable = new Map();
         var dayOfWeekTable = new Map();
+        var perDayOfWeekTable = new Map();
+
         for (var i = 0; i < 24; ++i) {
           hourOfDayTable.set(i, 0);
         }
         for (var i = 0; i < 7; ++i) {
           dayOfWeekTable.set(i, 0);
+          var m = new Map();
+          for (var j = 0; j < 24; ++j) {
+            m.set(j, 0);
+          }
+
+          perDayOfWeekTable.set(i, m);
         }
 
 
 
 
         snapshot.forEach(function (childSnapshot) {
-          /*
-          events.push({
-            key: childSnapshot.key,
-            id: childSnapshot.key,
-            time: helpers.convertTS(childSnapshot.child("timestamp").val()),
-            eventType: childSnapshot.child("type").val(),
-            deviceId: childSnapshot.child("deviceId").val(),
-            label: childSnapshot.child("label").val(),
-            notify: childSnapshot.child("notify").val(),
-            ioPin: childSnapshot.child("gpioPin").val(),
-            alertType: childSnapshot.child("alertType").val(),
-
-          });
-          */
-
           if ("ACTIVITY" == childSnapshot.child("type").val()) {
             var d = new Date(childSnapshot.child("timestamp").val());
             hourOfDayTable.set(d.getHours(), hourOfDayTable.get(d.getHours()) + 1);
+            var dl = perDayOfWeekTable.get(d.getDay());
+            var v = dl.get(d.getHours());
+            if (!v) {
+              v = 0;
+            }
+            dl.set(d.getHours(), v + 1);
 
             dayOfWeekTable.set(d.getDay(), dayOfWeekTable.get(d.getDay()) + 1);
+
+
+
             var l = childSnapshot.child("label").val();
             if (frequencyTable.has(l)) {
               frequencyTable.set(l, frequencyTable.get(l) + 1);
@@ -99,6 +102,7 @@ class StatsPage extends React.Component {
             frequencyTable: frequencyTable,
             hourOfDayTable: hourOfDayTable,
             dayOfWeekTable: dayOfWeekTable,
+            perDayOfWeekTable: perDayOfWeekTable,
 
             minDisp: -minDisp, maxDisp: -maxDisp
           });
@@ -129,36 +133,13 @@ class StatsPage extends React.Component {
   }
 
 
-  render() {
-    const loc = this.locationHolder.getLocation();
-    var dows = [];
-    var dowt = this.state['dayOfWeekTable'];
-    for (var i = 0; i < 7; ++i) {
-      var d = dowt.get(i);
-      if (d != null) {
-        dows.push(d);
-      } else {
-        dows.push(0);
-
-      }
-    }
+  componentWillUnmount() {
+    this._mounted = false;
+  }
 
 
-    var dataBar1 = {
-      labels: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-      datasets: [
-        {
-          label: "Activations",
-          data: dows,
-          backgroundColor: "rgba(245, 74, 85, 0.5)",
-          borderWidth: 1
-        },
-
-      ]
-    };
-
+  makeDataBar(hodt) {
     var hods = [];
-    var hodt = this.state['hourOfDayTable'];
     for (var i = 0; i < 24; ++i) {
       var d = hodt.get(i);
       if (d != null) {
@@ -180,6 +161,45 @@ class StatsPage extends React.Component {
         {
           label: "Activations",
           data: hods,
+          backgroundColor: "rgba(245, 74, 85, 0.8)",
+          borderWidth: 1
+        },
+
+      ]
+    };
+
+    return dataBar2;
+
+  }
+
+  render() {
+
+    const loc = this.locationHolder.getLocation();
+    var dows = [];
+    var dowt = this.state['dayOfWeekTable'];
+
+    var perDayOfWeekTable = this.state['perDayOfWeekTable'];
+
+
+    var perDayList = [];
+
+    for (var i = 0; i < 7; ++i) {
+      var d = dowt.get(i);
+      if (d != null) {
+        dows.push(d);
+      } else {
+        dows.push(0);
+
+      }
+    }
+
+
+    var dataBar1 = {
+      labels: helpers.dowNames,
+      datasets: [
+        {
+          label: "Activations",
+          data: dows,
           backgroundColor: "rgba(245, 74, 85, 0.5)",
           borderWidth: 1
         },
@@ -187,6 +207,11 @@ class StatsPage extends React.Component {
       ]
     };
 
+
+    var hodt = this.state['hourOfDayTable'];
+
+
+    var dataBar2 = this.makeDataBar(hodt);
 
     var barChartOptions = {
       responsive: true,
@@ -216,6 +241,22 @@ class StatsPage extends React.Component {
 
 
     };
+    var k = 100;
+    for (var i = 0; i < 7; ++i) {
+
+      var t = perDayOfWeekTable.get(i);
+      if (t) {
+
+        var dataBarD = this.makeDataBar(t);
+
+        perDayList.push(<div key={k++} className="lead">{helpers.dowNames[i]}</div>);
+        perDayList.push(<div key={k++}><Bar key={k++} data={dataBarD} options={barChartOptions} /></div>);
+      }
+
+
+    }
+
+
 
     var pieLabels = [];
     var pieData = [];
@@ -250,6 +291,9 @@ class StatsPage extends React.Component {
       ]
     };
 
+
+
+
     return <div>
       <ol className="breadcrumb">
         <li className="breadcrumb-item">
@@ -261,38 +305,50 @@ class StatsPage extends React.Component {
         <li className="breadcrumb-item active">Statistics</li>
       </ol>
 
-
-      <div className="card mb-3  ">
-        <div className="card-header">
-          <i className="fa fa-exclamation-circle"></i>&nbsp;Sensor Activity by Hour of Day</div>
-        <div className="card-body ">
-          <div className="table-responsive nohscroll">
-            <Bar data={dataBar2} options={barChartOptions} />
+      <div className="row">
+        <div className="col">
+          <div className="card">
+            <div className="card-header">
+              <i className="fa fa-calendar"></i>&nbsp;Sensor Activity by Hour of Day</div>
+            <div className="card-body ">
+              <Bar data={dataBar2} options={barChartOptions} />
+            </div>
           </div>
         </div>
       </div>
 
       <div className="row">
 
-        <div className="col">
-          <div className="card mb-3  ">
+        <div className="col-sm">
+          <div className="card ">
             <div className="card-header">
-              <i className="fa fa-exclamation-circle"></i>&nbsp;Sensor Activity by Day of Week</div>
+              <i className="fa fa-calendar"></i>&nbsp;Sensor Activity by Day of Week</div>
             <div className="card-body ">
-              <div className="table-responsive nohscroll">
-                <Bar data={dataBar1} options={barChartOptions} />
-              </div>
+              <Bar data={dataBar1} options={barChartOptions} />
             </div>
           </div>
         </div>
 
-        <div className="col">
-          <div className="card mb-3  ">
+        <div className="col-sm">
+          <div className="card ">
             <div className="card-header">
-              <i className="fa fa-exclamation-circle"></i>&nbsp;Sensor Activity Breakdown</div>
+              <i className="fa fa-search"></i>&nbsp;Sensor Activity Breakdown</div>
             <div className="card-body ">
-              <div className="table-responsive nohscroll">
-                <Doughnut data={dataPie} options={{ responsive: true }} />
+
+              <div style={{
+                 margin: "auto",
+                 "margin-left": "auto",
+                 "margin-right" : "auto",
+                width: "50%",
+                height: "40%",
+                
+              }}>
+                <Doughnut data={dataPie} options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+
+                }} />
+
               </div>
             </div>
           </div>
@@ -300,6 +356,21 @@ class StatsPage extends React.Component {
         </div>
       </div>
 
+      <div className="row">
+        <div className="col">
+          <div className="card">
+            <div className="card-header">
+              <i className="fa fa-search"></i>&nbsp;Detailed per day Breakdown
+              </div>
+            <div className="card-body ">
+
+              {perDayList}
+
+
+            </div>
+          </div>
+        </div>
+      </div>
 
 
     </div>

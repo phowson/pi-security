@@ -45,12 +45,12 @@ class DeviceHealthPage extends React.Component {
 
 
         snapshot.forEach(function (childSnapshot) {
-       
+
           var devId = childSnapshot.child("deviceId").val();
           var locId = childSnapshot.child("location").val();
 
-          var key =  devId + "," + locId;
-            
+          var key = devId + "," + locId;
+
 
           var lst = records.get(key);
           if (lst == null) {
@@ -91,7 +91,7 @@ class DeviceHealthPage extends React.Component {
 
   }
 
-  
+
   componentWillUnmount() {
     this._mounted = false;
   }
@@ -122,6 +122,11 @@ class DeviceHealthPage extends React.Component {
           id: 'A',
           type: 'linear',
           position: 'left',
+          ticks: {
+            max: 80,
+            min: 10
+          }
+
         }, {
           id: 'B',
           type: 'linear',
@@ -169,14 +174,14 @@ class DeviceHealthPage extends React.Component {
 
 
       });
-      
+
       var dataLine = {
         labels: allTimes,
         datasets: [
           {
             label: 'Device Temperature',
             pointBackgroundColor: 'rgba(200,50,50,0.8)',
-            backgroundColor :'rgba(200,50,50,0.1)',
+            backgroundColor: 'rgba(200,50,50,0.1)',
 
 
             data: tempPoints,
@@ -186,8 +191,8 @@ class DeviceHealthPage extends React.Component {
           {
             label: 'Ambient Humidity',
             pointBackgroundColor: 'rgba(50,50,220,0.8)',
-            backgroundColor :'rgba(50,50,220,0.1)',
-           
+            backgroundColor: 'rgba(50,50,220,0.1)',
+
             data: humidityPoints,
             yAxisID: 'B',
           },
@@ -197,7 +202,7 @@ class DeviceHealthPage extends React.Component {
       allTimes.reverse();
       tempPoints.reverse();
       humidityPoints.reverse();
-      k = k+1;
+      k = k + 1;
       out.push(
         <div className="card mb-3" key='{k}'>
           <div className="card-header">
@@ -223,17 +228,19 @@ class DeviceHealthPage extends React.Component {
         <li className="breadcrumb-item active">Device Health</li>
       </ol>
 
-
-      {out}
-
+      
       <div className="card mb-3">
-          <div className="card-header">
-            <i className="fa fa-thermometer-quarter"></i>&nbsp;Current Device Status at {loc}</div>
-          <div className="card-body">
-            All devices in normal bounds
+        <div className="card-header">
+          <i className="fa fa-thermometer-quarter"></i>&nbsp;Current Device Status at {loc}</div>
+        <div className="card-body">
+          All devices in normal bounds
           </div>
 
       </div>
+
+      {out}
+
+     
 
     </div>
 

@@ -24,7 +24,8 @@ function convertTS(ts) {
   return date.getFullYear() + "-" + twoDigit(date.getMonth()+1) + "-" + twoDigit(date.getDate()) +" " + twoDigit(date.getHours()) +":" + twoDigit(date.getMinutes()) +":" + twoDigit(date.getSeconds());
 }
 
+const dowNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 export {
-  convertTS
+  convertTS, dowNames, twoDigit
 };

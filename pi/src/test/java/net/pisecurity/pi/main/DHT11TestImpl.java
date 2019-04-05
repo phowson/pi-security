@@ -18,8 +18,8 @@ public class DHT11TestImpl implements DHT11 {
 	@Override
 	public DHTReading read() {
 		DHTReading r = new DHTReading();
-		r.humidity = 30;
-		r.temperature = 22;
+		r.humidity = (float) (30 + (5 * Math.random()));
+		r.temperature = (float) (22+ (5 * Math.random()));
 		return r;
 	}
 }
