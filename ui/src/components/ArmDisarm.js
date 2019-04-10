@@ -28,6 +28,7 @@ class ArmDisarmPage extends React.Component {
     this.limitTo = 100;
     this.offset = 0;
     this.knownMax = 0;
+    this.listKey = 0;
 
     this.state = {
       perDayOfWeekTable: new Map(),
@@ -151,6 +152,51 @@ class ArmDisarmPage extends React.Component {
   }
 
 
+  generateDaysOfWeek() {
+    const daysOfWeek = [
+      (<option key={++this.listKey} value="0">Sunday</option>),
+      (<option key={++this.listKey} value="1">Monday</option>),
+      (<option key={++this.listKey} value="2">Tuesday</option>),
+      (<option key={++this.listKey} value="3">Wednesday</option>),
+      (<option key={++this.listKey} value="4">Thursday</option>),
+      (<option key={++this.listKey} value="5">Friday</option>),
+      (<option key={++this.listKey} value="6">Saturday</option>),
+    ];
+    return daysOfWeek;
+
+  }
+
+
+  generateHoursList() {
+
+    var hoursList = [
+
+    ];
+    
+    
+    for (var i = 0; i < 24; ++i) {
+
+      hoursList.push(<option key={++this.listKey} value={i}>{helpers.twoDigit(i)}</option>);
+    }
+
+
+    return hoursList;
+
+  }
+
+  generateMinutesList() {
+    var minutesList = [
+
+    ];
+    for (var i = 15; i < 60; i+=15) {
+
+      minutesList.push(<option key={++this.listKey} value={i}>{helpers.twoDigit(i)}</option>);
+    }
+
+    return minutesList;
+
+  }
+
 
   render() {
 
@@ -191,32 +237,7 @@ class ArmDisarmPage extends React.Component {
     const t = this;
     const loc = this.locationHolder.getLocation();
 
-    const daysOfWeek = [
-      (<option value="0">Sunday</option>),
-      (<option value="1">Monday</option>),
-      (<option value="2">Tuesday</option>),
-      (<option value="3">Wednesday</option>),
-      (<option value="4">Thursday</option>),
-      (<option value="5">Friday</option>),
-      (<option value="6">Saturday</option>),
-    ];
-
-    var hoursList = [
-
-    ];
-    
-    var minutesList = [
-
-    ];
-    for (var i = 0; i < 24; ++i) {
-
-      hoursList.push(<option value={i}>{helpers.twoDigit(i)}</option>);
-    }
-
-    for (var i = 15; i < 60; i+=15) {
-
-      minutesList.push(<option value={i}>{helpers.twoDigit(i)}</option>);
-    }
+   
 
 
     return <div>
@@ -265,28 +286,28 @@ class ArmDisarmPage extends React.Component {
 
               <select
                 key="dateSelect1">
-                {daysOfWeek}
+                {t.generateDaysOfWeek()}
               </select>
               <label>&nbsp;at&nbsp;</label>
               <select
                 key="hourSelect1">
-                {hoursList}
+                {t.generateHoursList()}
               </select>
 
               <label>:00 and&nbsp;</label>
               <select
                 key="dateSelect2">
-                {daysOfWeek}
+                {t.generateDaysOfWeek()}
               </select>
               <label>&nbsp;at&nbsp;</label>
               <select
                 key="hourSelect2">
-                {hoursList}
+                {t.generateHoursList()}
               </select>
               <label>:00 if no activity seen for&nbsp;</label>
               <select
                 key="minuteSelect">
-                {minutesList}
+                {t.generateMinutesList()}
               </select>
 
               <div style={{ width: 5, height: "auto", display: "inline-block" }} />

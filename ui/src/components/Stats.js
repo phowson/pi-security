@@ -336,12 +336,12 @@ class StatsPage extends React.Component {
             <div className="card-body ">
 
               <div style={{
-                 margin: "auto",
-                 "margin-left": "auto",
-                 "margin-right" : "auto",
-                width: "50%",
-                height: "40%",
-                
+                margin: "auto",
+                "marginLeft": "auto",
+                "marginRight": "auto",
+                width: "400px",
+                height: "400px",
+
               }}>
                 <Doughnut data={dataPie} options={{
                   responsive: true,
