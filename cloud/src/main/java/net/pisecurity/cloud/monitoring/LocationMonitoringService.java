@@ -1,8 +1,12 @@
 package net.pisecurity.cloud.monitoring;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -18,7 +22,6 @@ import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
-import gnu.trove.map.hash.TIntObjectHashMap;
 import net.pisecurity.cloud.model.ExampleFactory;
 import net.pisecurity.cloud.model.NotificationConfig;
 import net.pisecurity.model.Event;
@@ -26,9 +29,6 @@ import net.pisecurity.model.EventAlertType;
 import net.pisecurity.model.EventPersistenceService;
 import net.pisecurity.model.EventType;
 import net.pisecurity.model.Heartbeat;
-import net.pisecurity.model.MonitoredPinConfig;
-import net.pisecurity.model.MonitoringConfig;
-import net.pisecurity.twillio.CallStatusListener;
 
 public class LocationMonitoringService implements Runnable {
 
@@ -39,7 +39,7 @@ public class LocationMonitoringService implements Runnable {
 	private DatabaseReference monitoringConfigRef;
 
 	private DatabaseReference configRef;
-	private long lastHeartbeatTime;
+	private Map<String, Long> lastHeartbeatTime = new HashMap<>();
 	private CloudMonitoringConfig monitoringConfig;
 
 	private String location;
@@ -64,15 +64,14 @@ public class LocationMonitoringService implements Runnable {
 
 	private long startupTime;
 
-	private boolean heartbeatAlerted;
+	private Set<String> heartbeatAlerted = new HashSet<>();
 
 	private EventPersistenceService eventPersistenceService;
 
 	public LocationMonitoringService(String locationId, ScheduledExecutorService mainExecutor, AppConfig appConfig,
-			DatabaseReference locationRef, 
-			
-			EventPersistenceService eventPersistenceService,
-			NotificationService notificationService) {
+			DatabaseReference locationRef,
+
+			EventPersistenceService eventPersistenceService, NotificationService notificationService) {
 		this.location = locationId;
 		this.eventPersistenceService = eventPersistenceService;
 		this.mainExecutor = mainExecutor;
@@ -84,8 +83,6 @@ public class LocationMonitoringService implements Runnable {
 		eventsRef = locationRef.child("events");
 
 		startupTime = System.currentTimeMillis();
-
-		lastHeartbeatTime = System.currentTimeMillis();
 
 		configRef.addValueEventListener(new ValueEventListener() {
 
@@ -193,13 +190,17 @@ public class LocationMonitoringService implements Runnable {
 
 			logger.info("Saw event : " + event);
 			switch (event.type) {
+			case ALARMTRIGGERED_MANUAL:
 			case ALARMTRIGGERED_AUTO:
 				events.add(event);
 				startBatch();
 
 				break;
 
-				
+			case ALARMRESET:
+				notifyReset();
+				break;
+
 			case SYSTEM_MANUAL_ARMED:
 			case SYSTEM_AUTO_ARMED:
 				notifyAutoArm();
@@ -260,6 +261,12 @@ public class LocationMonitoringService implements Runnable {
 
 	}
 
+	private void notifyReset() {
+
+		notificationService.notifyReset(notificationConfig);
+
+	}
+
 	private void notifyAutoArm() {
 		notificationService.notifyAutoArm(notificationConfig);
 	}
@@ -268,13 +275,12 @@ public class LocationMonitoringService implements Runnable {
 
 		if (force || (System.currentTimeMillis() - batchStart >= monitoringConfig.alarmDelaySeconds * 1000 && armed)) {
 			logger.info("Sending alert batch : " + events);
-			
-			this.eventPersistenceService.persist(new Event(System.currentTimeMillis(), -1, "Users notified", EventType.USERS_NOTIFIED_OF_ALARM, 					
-					"Users notified by cloud service",
-					"Cloud Service", EventAlertType.NONE, false));
-			
-			
-			notificationService.notifyEvents(notificationConfig, events);
+
+			this.eventPersistenceService.persist(
+					new Event(System.currentTimeMillis(), -1, "Users notified", EventType.USERS_NOTIFIED_OF_ALARM,
+							"Users notified by cloud service", "Cloud Service", EventAlertType.NONE, false));
+
+			notificationService.notifyEvents(this.location, notificationConfig, events);
 			batchingEvents = false;
 			events.clear();
 		}
@@ -284,11 +290,15 @@ public class LocationMonitoringService implements Runnable {
 	protected synchronized void onHeartbeatChanged(DataSnapshot snapshot) {
 		boolean anyArmed = false;
 		for (Iterator<DataSnapshot> it = snapshot.getChildren().iterator(); it.hasNext();) {
-			Heartbeat hb = it.next().getValue(Heartbeat.class);
+			DataSnapshot n = it.next();
+			String deviceName = n.getKey();
+			Heartbeat hb = n.getValue(Heartbeat.class);
 			if (hb != null) {
-				if (hb.timestamp > lastHeartbeatTime) {
+				Long lhbt = lastHeartbeatTime.get(deviceName);
+
+				if (lhbt == null || hb.timestamp > lhbt) {
 					logger.info("device heartbeat : " + hb + " for location : " + location);
-					lastHeartbeatTime = hb.timestamp;
+					lastHeartbeatTime.put(deviceName, hb.timestamp);
 				}
 				anyArmed |= hb.armed;
 			} else {
@@ -352,22 +362,27 @@ public class LocationMonitoringService implements Runnable {
 
 		try {
 			if (this.monitoringConfig != null) {
-				long d = System.currentTimeMillis() - lastHeartbeatTime;
 
-				if (d / 1000 > this.monitoringConfig.alarmDelaySeconds) {
+				for (Map.Entry<String, Long> e : lastHeartbeatTime.entrySet()) {
+					long d = System.currentTimeMillis() - e.getValue();
 
-					if (!heartbeatAlerted) {
-						logger.info("Saw heartbeat timeout, " + (d / 1000) + " seconds without any heartbeat activity");
+					String deviceName = e.getKey();
+					if (d / 1000 > this.monitoringConfig.alarmDelaySeconds) {
 
-						notificationService.notifyHeartbeatTimeout(this.location, notificationConfig);
+						if (!heartbeatAlerted.contains(deviceName)) {
+							logger.info("Saw heartbeat timeout, " + (d / 1000)
+									+ " seconds without any heartbeat activity for device " + deviceName);
 
-						heartbeatAlerted = true;
-					}
+							notificationService.notifyHeartbeatTimeout(this.location, deviceName, notificationConfig);
 
-				} else {
-					if (heartbeatAlerted) {
-						logger.info("Heartbeat now OK");
-						heartbeatAlerted = false;
+							heartbeatAlerted.add(deviceName);
+						}
+
+					} else {
+						if (heartbeatAlerted.contains(deviceName)) {
+							logger.info("Heartbeat now OK for " + deviceName);
+							heartbeatAlerted.remove(deviceName);
+						}
 					}
 				}
 

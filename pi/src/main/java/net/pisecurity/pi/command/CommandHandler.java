@@ -52,10 +52,7 @@ public class CommandHandler {
 					switch (request.command) {
 
 					case ARM:
-						alertState.armed = true;
-						listener.onEvent(new Event(System.currentTimeMillis(), -1, "System manually armed by " + request.user,
-								EventType.SYSTEM_MANUAL_ARMED, "Armed manually", deviceId, EventAlertType.NONE, false));
-
+						arm(request);
 						break;
 
 					case DISARM:
@@ -74,6 +71,9 @@ public class CommandHandler {
 						break;
 
 					case TRIGGER_ALARM:
+						if (!alertState.armed) {
+							arm(request);
+						}
 						alarmBellController.on();
 						alertState.alarmActive = true;
 
@@ -92,6 +92,14 @@ public class CommandHandler {
 			});
 
 		}
+	}
+
+	private void arm(RequestedState request) {
+		alertState.armed = true;
+		listener.onEvent(new Event(System.currentTimeMillis(), -1, "System manually armed by " + request.user,
+				EventType.SYSTEM_MANUAL_ARMED, "Armed manually", deviceId, EventAlertType.NONE, false));
+
+		
 	}
 
 	private void doResetAlarm() {

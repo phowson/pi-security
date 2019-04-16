@@ -13,6 +13,7 @@ class PermissionsPage extends React.Component {
 
     this.state = {
       roles: [],
+      userRoles:[]
     };
 
     this._mounted = false;
@@ -59,6 +60,39 @@ class PermissionsPage extends React.Component {
         c.setState({ roles: roles });
       }
     });
+
+    const query2 = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/roleUserAssignment").orderByKey();
+    var t = this;
+    query2.on("value", function (snapshot) {
+      if (c._mounted) {
+
+
+        var userRoles = [];
+
+
+        snapshot.forEach(function (childSnapshot) {
+          userRoles.push({
+            key: childSnapshot.key,
+            id: childSnapshot.key,
+            roleName: childSnapshot.child("roleName").val(),
+            arm: childSnapshot.child("canArm").val(),
+            changeSettings: childSnapshot.child("canChangeSettings").val(),
+            disarm: childSnapshot.child("canDisarm").val(),
+            resetAlarm: childSnapshot.child("canResetAlarm").val(),
+            triggerAlarm: childSnapshot.child("canTriggerAlarm").val(),
+          });
+
+
+
+
+          return false;
+
+        });
+        c.setState({ userRoles: userRoles });
+      }
+    });
+
+
 
   }
 

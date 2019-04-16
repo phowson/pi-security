@@ -21,6 +21,8 @@ import net.pisecurity.cloud.model.CallRecord;
 import net.pisecurity.cloud.model.NotificationConfig;
 import net.pisecurity.cloud.model.PhoneRecord;
 import net.pisecurity.model.Event;
+import net.pisecurity.model.EventAlertType;
+import net.pisecurity.model.EventType;
 import net.pisecurity.twillio.CallStatusListener;
 import net.pisecurity.twillio.TwilioSMS;
 import net.pisecurity.twillio.TwilioVoiceAlertService;
@@ -36,6 +38,7 @@ public class NotificationService implements CallStatusListener {
 
 	private DatabaseReference callDbRef;
 	private DatabaseReference callSequenceRef;
+
 
 	public NotificationService(TwilioVoiceAlertService voiceAlertService, TwilioSMS twilioSms, Executor executor,
 			DatabaseReference callDbRef, DatabaseReference callSequenceRef) {
@@ -124,19 +127,40 @@ public class NotificationService implements CallStatusListener {
 		}
 	}
 
-	public void notifyEvents(NotificationConfig notificationConfig, List<Event> events) {
-		StringBuilder sb = new StringBuilder();
-
-		sb.append("Saw activity in the following areas : ");
-
+	public void notifyEvents(String location, NotificationConfig notificationConfig, List<Event> events) {
+		StringBuilder sb2 = new StringBuilder();
 		Set<String> s = new HashSet<>();
 		for (Event e : events) {
 
-			if (s.add(e.label)) {
-				sb.append(e.label);
-				sb.append(", ");
+			if (e.type != EventType.ALARMTRIGGERED_AUTO && e.type != EventType.ALARMTRIGGERED_MANUAL) {
+				if (s.add(e.label)) {
+					sb2.append(e.label);
+					sb2.append(", ");
+				}
 			}
 		}
+		
+		StringBuilder sb = new StringBuilder();
+		if (!s.isEmpty()) {
+			sb.append("This is your cloud alarm system, for your intruder alarm at " + location
+				+ ". I saw activity on these sensors : ");
+			
+			sb.append(sb2);
+		} else {
+			sb.append("This is your cloud alarm system, for your intruder alarm at " + location
+					+ ". My alarm was triggerd. ");			
+			for (Event e : events) {
+
+				if (e.type == EventType.ALARMTRIGGERED_AUTO || e.type == EventType.ALARMTRIGGERED_MANUAL) {
+					if (s.add(e.label)) {
+						sb.append(e.label);
+						sb.append(", ");
+					}
+				}
+			}		
+		}
+		
+		
 
 		if (notificationConfig.sendTextsForAlarm) {
 			sendTextMessage(sb.toString(), notificationConfig.alarmNotificationList);
@@ -184,11 +208,11 @@ public class NotificationService implements CallStatusListener {
 									});
 								}
 							}
-							
+
 							return Transaction.success(mutableData);
-							
-							
+
 						}
+
 						public void onComplete(DatabaseError databaseError, boolean complete,
 								DataSnapshot dataSnapshot) {
 							if (databaseError == null && complete) {
@@ -198,8 +222,6 @@ public class NotificationService implements CallStatusListener {
 							}
 						}
 					});
-						
-
 
 				} catch (Exception e) {
 					logger.error("Unexpected exception", e);
@@ -234,11 +256,16 @@ public class NotificationService implements CallStatusListener {
 		}
 	}
 
-	public void notifyHeartbeatTimeout(String s, NotificationConfig notificationConfig) {		
-		sendVoiceMessage("Internet connection lost to the following location : " + s, notificationConfig.alarmNotificationList, notificationConfig.callRetries);
-		
+	public void notifyHeartbeatTimeout(String loc, String devName, NotificationConfig notificationConfig) {
 
+		String message = "This is your alarm cloud monitoring service for your alarm at " + loc +". I lost connection to your alarm " + devName;
+		sendTextMessage(message, notificationConfig.alarmNotificationList);
+		sendVoiceMessage(message, notificationConfig.alarmNotificationList, notificationConfig.callRetries);
 
+	}
+
+	public void notifyReset(NotificationConfig notificationConfig) {
+		sendTextMessage("Alarm reset", notificationConfig.alarmNotificationList);
 	}
 
 }

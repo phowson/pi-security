@@ -163,7 +163,7 @@ public class TwilioVoiceAlertService implements UncaughtExceptionHandler, Runnab
 						}
 					} else {
 						try {
-							String n = c.numbers[c.index + 1];
+							String n = c.numbers[c.index];
 							c.listener.onCallComplete(false,n, c.message);
 						} catch (Exception e) {
 							logger.error("Unexpected exception", e);

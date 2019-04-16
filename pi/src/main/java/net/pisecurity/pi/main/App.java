@@ -194,7 +194,7 @@ public class App implements UncaughtExceptionHandler, Runnable, Heartbeater {
 		}
 
 		monitoringService = new MonitoringService(config, ioInterface, alertState, alarmBellController, eventListener,
-				internetStatus, mainExecutor, appConfig.deviceId);
+				internetStatus,this, mainExecutor, appConfig.deviceId);
 		logger.info("Monitoring service configured");
 
 		if (dhtService != null) {

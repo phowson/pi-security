@@ -17,6 +17,7 @@ import net.pisecurity.model.EventType;
 import net.pisecurity.model.MonitoredPinConfig;
 import net.pisecurity.model.MonitoringConfig;
 import net.pisecurity.model.SensorType;
+import net.pisecurity.pi.main.Heartbeater;
 
 public class MonitoringService implements IOActivityListener, ExternalEventListener {
 	private static final Logger logger = LogManager.getLogger(MonitoringService.class);
@@ -32,9 +33,13 @@ public class MonitoringService implements IOActivityListener, ExternalEventListe
 
 	private String deviceId;
 
+	private Heartbeater heartbeater;
+
 	public MonitoringService(MonitoringConfig config, IOInterface ioInterface, AlertState alertState,
 			AlarmBellController alarmBellController, EventListener eventListener, InternetStatus internetStatus,
+			Heartbeater heartbeater,
 			ScheduledExecutorService mainExecutor, String deviceId) {
+		this.heartbeater = heartbeater;
 		this.alertState = alertState;
 		this.mainExecutor = mainExecutor;
 		this.eventListener = eventListener;
@@ -166,6 +171,9 @@ public class MonitoringService implements IOActivityListener, ExternalEventListe
 								deviceId, alert, report));
 
 						alarmBellController.on();
+						this.heartbeater.writeHeartbeat();
+						
+						
 					}
 
 				} else {
