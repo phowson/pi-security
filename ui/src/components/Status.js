@@ -327,7 +327,7 @@ class StatusPage extends React.Component {
       calls: [],
       events: []
     };
-
+    this._mounted = false;
 
     this.limitTo = 10;
 

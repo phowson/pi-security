@@ -15,3 +15,6 @@ export const DEVICESETTINGS = '/devicesettings';
 export const MONITORINGSETTINGS = '/monitorsettings';
 export const DEVICEHEALTH = '/devicehealth';
 export const ARMDISARM = '/armdisarm';
+export const INSTALLERDEVICESETTINGS = '/installerdevicesettings'
+
+export const SENSORHEALTH = '/sensorhealth'

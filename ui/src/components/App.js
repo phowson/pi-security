@@ -12,6 +12,9 @@ import PasswordForgetPage from './PasswordForget';
 import LocationsPage from './Locations';
 import AccountPage from './Account';
 
+import InstallerDeviceSettingsPage from './InstallerDeviceSettings';
+import SensorHealthPage from './SensorHealth';
+
 
 import StatusPage from './Status';
 import ActivityPage from './Activity';
@@ -94,7 +97,13 @@ class MainApp extends React.Component {
 
 
               <Route exact path={routes.DEVICESETTINGS} component={() => <DeviceSettingsPage locationHolder = {t}/>} />
+              <Route exact path={routes.INSTALLERDEVICESETTINGS} component={() => <InstallerDeviceSettingsPage locationHolder = {t}/>} />
+
+
               <Route exact path={routes.MONITORINGSETTINGS} component={() => <MonitorSettingsPage locationHolder = {t}/>} />
+
+              <Route exact path={routes.SENSORHEALTH} component={() => <SensorHealthPage locationHolder = {t}/>} />
+
               <Route exact path={routes.DEVICEHEALTH} component={() => <DeviceHealthPage locationHolder = {t}/>} />
 
               <Route exact path={routes.ARMDISARM} component={() => <ArmDisarmPage locationHolder = {t}/>} />

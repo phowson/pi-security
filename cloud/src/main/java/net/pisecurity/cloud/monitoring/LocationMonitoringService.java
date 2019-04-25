@@ -18,10 +18,12 @@ import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.DatabaseReference.CompletionListener;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
+import net.pisecurity.cloud.model.CommandRecord;
 import net.pisecurity.cloud.model.ExampleFactory;
 import net.pisecurity.cloud.model.NotificationConfig;
 import net.pisecurity.model.Event;
@@ -33,6 +35,8 @@ import net.pisecurity.model.Heartbeat;
 public class LocationMonitoringService implements Runnable {
 
 	private static final Logger logger = LogManager.getLogger(LocationMonitoringService.class);
+
+	private static final long HEARTBEAT_INTERVAL = 10 * 1000;
 
 	private ScheduledExecutorService mainExecutor;
 	private DatabaseReference heartbeatRef;
@@ -68,6 +72,10 @@ public class LocationMonitoringService implements Runnable {
 
 	private EventPersistenceService eventPersistenceService;
 
+	private DatabaseReference cloudCommandRef;
+
+	private DatabaseReference cloudHeartbeatRef;
+
 	public LocationMonitoringService(String locationId, ScheduledExecutorService mainExecutor, AppConfig appConfig,
 			DatabaseReference locationRef,
 
@@ -80,6 +88,7 @@ public class LocationMonitoringService implements Runnable {
 		heartbeatRef = locationRef.child("heartbeat");
 		configRef = locationRef.child("notificationConfig");
 
+		cloudHeartbeatRef = locationRef.child("lastCloudHeartbeat");
 		eventsRef = locationRef.child("events");
 
 		startupTime = System.currentTimeMillis();
@@ -120,6 +129,82 @@ public class LocationMonitoringService implements Runnable {
 			@Override
 			public void onCancelled(DatabaseError error) {
 				logger.error("Database error while trying to get heartbeat " + error);
+			}
+		});
+		cloudCommandRef = locationRef.child("cloudCommand");
+
+		cloudCommandRef.addValueEventListener(new ValueEventListener() {
+			
+			@Override
+			public void onDataChange(DataSnapshot snapshot) {
+				CommandRecord r = snapshot.getValue(CommandRecord.class);
+				if (r!=null) {
+					if (!r.applied) {
+						onNewCloudServiceCommand(r);
+					}
+				}
+
+			}
+			
+			@Override
+			public void onCancelled(DatabaseError error) {
+				
+			}
+		});
+
+		mainExecutor.scheduleWithFixedDelay(new Runnable() {
+
+			@Override
+			public void run() {
+
+				try {
+					cloudHeartbeatRef.setValue(System.currentTimeMillis(), new CompletionListener() {
+
+						@Override
+						public void onComplete(DatabaseError error, DatabaseReference ref) {
+							if (error != null) {
+								logger.error("Error while writing heartbeat : " + error);
+							}
+						}
+					});
+				} catch (Exception e) {
+					logger.error("Error while writing heartbeat : ", e);
+				}
+
+			}
+		}, HEARTBEAT_INTERVAL, HEARTBEAT_INTERVAL, TimeUnit.MILLISECONDS);
+
+	}
+
+	protected void onNewCloudServiceCommand(CommandRecord r) {
+		logger.info("Recieved new cloud command : " + r.command);
+
+		switch (r.command) {
+
+		case "TEST_CALL":
+			notificationService
+					.notifyEvents(location, notificationConfig,
+							java.util.Collections.singletonList(new Event(System.currentTimeMillis(), -1,
+									"Test cloud call service", EventType.ACTIVITY, "Test cloud call service", "cloud",
+									EventAlertType.IMMEDIATE_ALERT, true)));
+
+			break;
+
+		default:
+			logger.error("Unknown command : " + r.command);
+		}
+
+		CommandRecord r2 = new CommandRecord();
+		r2.command = r.command;
+		r2.applied = true;
+		cloudCommandRef.setValue(r2, new CompletionListener() {
+
+			@Override
+			public void onComplete(DatabaseError error, DatabaseReference ref) {
+				if (error != null) {
+					logger.error("Error while updating command : " + error);
+
+				}
 			}
 		});
 

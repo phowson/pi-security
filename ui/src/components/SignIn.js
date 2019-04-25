@@ -8,27 +8,26 @@ import { PasswordForgetLink } from './PasswordForget';
 
 
 const SignInPage = ({ history, locationHolder }) =>
-  <div>
-    <div>
-      <ol className="breadcrumb">
-        <li className="breadcrumb-item">
-          <Link to="signin">Sign In</Link>
-        </li>
-      </ol>
+<div>
+<div>
+  <ol className="breadcrumb">
+    <li className="breadcrumb-item">
+      <Link to="signin">Sign In</Link>
+    </li>
+  </ol>
 
-      <div className="card mb-3">
-        <div className="card-header">
-          Log in
-        </div>
-        <div className="card-body">
-          <SignInForm history={history} locationHolder={locationHolder} />
-          <PasswordForgetLink />
-          <SignUpLink />
-        </div>
-      </div>
+  <div className="card mb-3">
+    <div className="card-header">
+      Log in
+    </div>
+    <div className="card-body">
+      <SignInForm history={history} locationHolder={locationHolder} />
+      <PasswordForgetLink />
+      <SignUpLink />
     </div>
   </div>
-
+</div>
+</div>
 
 const byPropKey = (propertyName, value) => () => ({
   [propertyName]: value,
@@ -98,7 +97,6 @@ class SignInForm extends Component {
       email === '';
 
     return (
-
 
       <form onSubmit={this.onSubmit}>
         <input

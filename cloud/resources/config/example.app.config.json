@@ -6,7 +6,7 @@
 	"serverConfig": {
 		"port": "8080",
 		"path": "/test/*",
-		"myUrl": "http://90.212.108.172:8080/test"
+		"myUrl": "http://2.216.75.247:8080/test"
 	},
 	
 	"locationId" : "test-1",

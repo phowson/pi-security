@@ -27,6 +27,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import net.pisecurity.cloud.model.CommandRecord;
 import net.pisecurity.twillio.TwilioAccountDetails;
 import net.pisecurity.twillio.TwilioSMS;
 import net.pisecurity.twillio.TwilioVoiceAlertService;
@@ -81,6 +82,9 @@ public class App implements UncaughtExceptionHandler, java.util.concurrent.Rejec
 		Executor executor = Executors.newSingleThreadExecutor(new NamedThreadFactory("TwillioThread", this, false));
 		notificationService = new NotificationService(voiceAlertService, new TwilioSMS(twilioAccountDetails), executor,
 				database.child("calls"), database.child("callSequence"));
+		
+		
+	
 
 		database.child("allLocations").addChildEventListener(new ChildEventListener() {
 
@@ -136,6 +140,7 @@ public class App implements UncaughtExceptionHandler, java.util.concurrent.Rejec
 			}
 		});
 	}
+
 
 	@Override
 	public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
