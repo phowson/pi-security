@@ -6,7 +6,7 @@ const LandingPage = () =>
 
     <h1 className="display-4">Security System Replacement</h1>
 
-    <p className="lead">Debug Interface</p>
+    <p className="lead">Administration, Installation and Debugging Interface</p>
 
     <hr className="my-4"/>
     <p>

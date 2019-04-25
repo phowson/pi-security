@@ -174,7 +174,7 @@ class BootstrapNavigation extends React.Component {
 
 
     return (<nav className="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
-      <Link className="navbar-brand" to="/">Security System Replacement</Link>
+      <Link className="navbar-brand" to="/">Installer and Administrator Interface</Link>
 
       <NavbarToggler onClick={this.toggle} />
 

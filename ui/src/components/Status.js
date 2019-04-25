@@ -49,7 +49,7 @@ class RecentCallsList extends React.Component {
               l.map((item) => {
                 return (
                   <tr key={item.key}>
-                    <td key={item.key}>
+                    <td key={item.key} className="small">
                       {item.time}
                     </td>
 
@@ -128,7 +128,7 @@ class RecentEventsList extends React.Component {
               l.map((item) => {
                 return (
                   <tr key={item.key}>
-                    <td key={item.key}>
+                    <td key={item.key} className="small">
                       {item.time}
                     </td>
 
@@ -189,8 +189,8 @@ class DeviceList extends React.Component {
         {
           "command": cmd,
           "applied": false,
-          "user" : t.username,
-          "timestamp" : Date.now()
+          "user": t.username,
+          "timestamp": Date.now()
 
         }
       );
@@ -200,23 +200,23 @@ class DeviceList extends React.Component {
   }
 
   onArmClicked(dbKey) {
-    return this.sendCommand(dbKey,"ARM");
+    return this.sendCommand(dbKey, "ARM");
 
   }
 
 
 
-  onDisarmClicked(dbKey) {    
-    return this.sendCommand(dbKey,"DISARM");
-      }
+  onDisarmClicked(dbKey) {
+    return this.sendCommand(dbKey, "DISARM");
+  }
 
   onTriggerBell(dbKey) {
-    return this.sendCommand(dbKey,"TRIGGER_ALARM");    
+    return this.sendCommand(dbKey, "TRIGGER_ALARM");
   }
 
   onReset(dbKey) {
 
-    return this.sendCommand(dbKey,"RESET_ALARM");    
+    return this.sendCommand(dbKey, "RESET_ALARM");
 
   }
 
@@ -264,15 +264,20 @@ class DeviceList extends React.Component {
                       {item.id}
                     </td>
 
-                    <td>
+                    <td className="small">
+
+                      <div className={(item.ok) ? "text-success" : "text-danger"} >
                       {item.lastHeartbeat}
+                      </div>
                     </td>
-                    <td>
+
+                    
+                    <td className="small">
                       {item.lastAlarmTime}
                     </td>
                     <td>
 
-                      <div style={(item.armed) ? { color: "red" } : { color: "green" }} >
+                    <div className={(item.armed) ? "text-danger" : "text-success"} >
                         {(item.armed) ? "ARMED" : "DISARMED"}
                       </div>
 
@@ -319,19 +324,22 @@ class StatusPage extends React.Component {
   constructor(props) {
     super(props);
 
-    
+
     this.locationHolder = props['locationHolder'];
 
     this.state = {
       heartbeats: [],
       calls: [],
-      events: []
+      events: [],
+      lastCloudHb: null
     };
     this._mounted = false;
 
     this.limitTo = 10;
+    this.limitToCalls = 4;
 
-
+    this.onTestCloud.bind(this);
+    this.queryRecentEvents.bind(this);
   }
 
   componentWillUnmount() {
@@ -369,14 +377,14 @@ class StatusPage extends React.Component {
           return false;
 
         });
-        c.setState({ events: events });        
+        c.setState({ events: events });
       }
     });
   }
 
   queryRecentCalls(maxEventSeq) {
     var c = this;
-    const query2 = firebase.database().ref('/calls').orderByChild("sequenceId").startAt(maxEventSeq).endAt(maxEventSeq + this.limitTo);
+    const query2 = firebase.database().ref('/calls').orderByChild("sequenceId").startAt(maxEventSeq).endAt(maxEventSeq + this.limitToCalls);
     query2.on("value", function (snapshot) {
       if (c._mounted) {
 
@@ -403,7 +411,7 @@ class StatusPage extends React.Component {
           return false;
 
         });
-        c.setState({ calls: calls });        
+        c.setState({ calls: calls });
       }
     });
   }
@@ -422,14 +430,19 @@ class StatusPage extends React.Component {
 
         var heartbeats = [];
 
+        const now = new Date().getTime();
+
 
         snapshot.forEach(function (childSnapshot) {
+          const lastTs= childSnapshot.child("timestamp").val();
+          const ok = now - lastTs <60000;
           heartbeats.push({
             key: childSnapshot.key,
             id: childSnapshot.key,
-            lastHeartbeat: helpers.convertTS(childSnapshot.child("timestamp").val()),
+            lastHeartbeat: helpers.convertTS(lastTs),
             lastAlarmTime: helpers.convertTS(childSnapshot.child("lastAlarmTime").val()),
             armed: childSnapshot.child("armed").val(),
+            ok : ok,
             alarmTriggered: childSnapshot.child("alarmTriggered").val(),
           });
 
@@ -439,7 +452,7 @@ class StatusPage extends React.Component {
           return false;
 
         });
-        c.setState({ heartbeats: heartbeats });        
+        c.setState({ heartbeats: heartbeats });
       }
     });
 
@@ -460,16 +473,48 @@ class StatusPage extends React.Component {
 
     );
 
+    const query5 = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/lastCloudHeartbeat");
+    query5.on("value", function (snapshot) {
+      if (c._mounted) {
+        c.setState({ lastCloudHb: new Date(snapshot.val()) });
+      }
+    });
+
 
 
   }
 
+
+  onTestCloud() {
+
+
+    return (evt) => {
+      const cmd = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/cloudCommand")
+
+      cmd.set(
+        {
+          "command": "TEST_CALL",
+          "applied": false,
+        }
+      );
+    }
+
+  }
+
   render() {
-    var loggedInUser ;
+    var loggedInUser;
 
     loggedInUser = "unknown";
     const t = this;
     const loc = this.locationHolder.getLocation();
+
+    const lastCloudHb = this.state['lastCloudHb'];
+    const cloudOk =
+      lastCloudHb ? new Date().getTime() - lastCloudHb.getTime() < 20000 :
+        false;
+
+
+
     return (
       <div>
         <ol className="breadcrumb">
@@ -482,25 +527,82 @@ class StatusPage extends React.Component {
           <li className="breadcrumb-item active">Current Status</li>
         </ol>
 
-        <div className="card mb-3">
-          <div className="card-header">
-            <i className="fa fa-eye"></i>&nbsp;Current System Status at {loc}</div>
-          <div className="card-body">
-            <div className="table-responsive">
+        <div className="row">
+          <div className="col">
 
-            <AuthUserContext.Consumer>
-              { authUser => 
-              authUser ?
-              <DeviceList               
-              username= { authUser.email }
-              getHeartbeats={() => t.state["heartbeats"]} locationHolder={t.locationHolder} />
-               : ""
-              }
-            </AuthUserContext.Consumer> 
+            <div className="card mb-3">
+              <div className="card-header">
+                <i className="fa fa-eye"></i>&nbsp;Current System Status at {loc}</div>
+              <div className="card-body">
+                <div className="table-responsive">
 
+                  <AuthUserContext.Consumer>
+                    {authUser =>
+                      authUser ?
+                        <DeviceList
+                          username={authUser.email}
+                          getHeartbeats={() => t.state["heartbeats"]} locationHolder={t.locationHolder} />
+                        : ""
+                    }
+                  </AuthUserContext.Consumer>
+
+                </div>
+
+              </div>
             </div>
-
           </div>
+
+          <div className="col">
+
+            <div className="card mb-3">
+              <div className="card-header">
+                <i className="fa fa-cloud"></i>&nbsp;Current Cloud Status at {loc}</div>
+              <div className="card-body">
+                <table
+                  className="table-hover table-bordered table-condensed"
+                  cellPadding="2px"
+                >
+                  <thead>
+                    <tr>
+
+                      <th>Last Heartbeat</th>
+                      <th>Status</th>
+                      <th>Controls</th>
+
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+
+                      <td className="small">
+                        {lastCloudHb && lastCloudHb > 0 ? helpers.convertTS(lastCloudHb) : "None"}
+
+
+                      </td>
+
+                      <td style={(cloudOk) ? { color: "green" } : { color: "red" }} >
+                        {cloudOk ? "OK" : "DOWN"}
+                      </td>
+
+
+                      <td>
+                        <div className="btn-group" role="group">
+                          <button className="btn btn-primary" onClick={t.onTestCloud()}>Test</button>
+                        </div>
+                      </td>
+
+
+                    </tr>
+
+                  </tbody>
+
+                </table>
+
+
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <div className="row">
@@ -531,7 +633,7 @@ class StatusPage extends React.Component {
 
 
 
-      </div>
+      </div >
 
 
     );

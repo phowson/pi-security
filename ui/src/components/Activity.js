@@ -194,6 +194,9 @@ class ActivityPage extends React.Component {
     this.runQuery();
 
   }
+  componentWillUnmount() {
+    this._mounted = false;
+  }
 
   onLeftClicked() {
     const t = this;

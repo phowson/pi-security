@@ -45,7 +45,7 @@ class PasswordChangeForm extends Component {
       /* To make sure that all labels have the same size and are properly aligned */
       display: 'inline-block',
       width: '250px',
-      'text-align': 'right'
+      textAlign: 'right'
 
 
 
