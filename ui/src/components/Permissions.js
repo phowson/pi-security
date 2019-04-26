@@ -3,6 +3,89 @@ import React from 'react';
 import { Route, Link, withRouter } from 'react-router-dom';
 import firebase from '../firebase/firebase.js';
 import * as helpers from '../helpers/datehelpers.js';
+import { isRegExp } from 'util';
+
+
+class RoleAssignmentTime {
+  constructor() {
+    this.assignmentType = null;
+    this.startTime = -1;
+    this.endTime = -1;
+  }
+
+
+}
+
+
+class UserRoleTable extends React.Component {
+
+  constructor(props) {
+    super(props);
+    this.getUserRoles = props['getUserRoles'];
+    this.render.bind(this);
+
+  }
+
+  render() {
+    const t = this;
+    const userRoles = t.getUserRoles();
+    var rowId = 0;
+
+    return <table
+            className="table-striped table-hover table-bordered"
+            cellPadding="5px"
+          >
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Time restrictions</th>
+              </tr>
+            </thead>
+            <tbody>
+              { userRoles.map(ur => {
+
+                if (ur.roleAssignmentTime.assignmentType=='PERMANENT') {
+                  return (<tr key = {rowId++}>
+                      <td>
+                        {ur.userId}
+                      </td>
+                      <td>
+                        {ur.role}
+                      </td>
+                      <td>
+                        Permanent
+                      </td>
+                  </tr>)
+
+                } else {
+                  return (<tr key = {rowId++}>
+                      <td>
+                        {ur.userId}
+                      </td>
+                      <td>
+                        {ur.role}
+                      </td>
+                      <td>
+                        Has this role between {
+                          helpers.convertTS(ur.roleAssignmentTime.startTime)
+                        } and {
+                          helpers.convertTS(ur.roleAssignmentTime.endTime)
+                        }
+                      </td>
+
+
+                    </tr>)
+                }
+
+              })}
+
+            </tbody>
+          </table>
+  }
+}
+
+
 
 
 class PermissionsPage extends React.Component {
@@ -68,18 +151,28 @@ class PermissionsPage extends React.Component {
 
 
         var userRoles = [];
+        
+
+
 
 
         snapshot.forEach(function (childSnapshot) {
+        
+          var fbRas = childSnapshot.child("roleAssignmentTime");
+          var ras = new RoleAssignmentTime();
+  
+          ras.assignmentType = fbRas.child("assignmentType").val();
+          ras.startTime = fbRas.child("startTime").val();
+          ras.endTime = fbRas.child("endTime").val();
+  
+        
           userRoles.push({
             key: childSnapshot.key,
             id: childSnapshot.key,
-            roleName: childSnapshot.child("roleName").val(),
-            arm: childSnapshot.child("canArm").val(),
-            changeSettings: childSnapshot.child("canChangeSettings").val(),
-            disarm: childSnapshot.child("canDisarm").val(),
-            resetAlarm: childSnapshot.child("canResetAlarm").val(),
-            triggerAlarm: childSnapshot.child("canTriggerAlarm").val(),
+            role: childSnapshot.child("role").val(),
+            userId: childSnapshot.child("userId").val(),
+            
+            roleAssignmentTime: ras,
           });
 
 
@@ -124,7 +217,7 @@ class PermissionsPage extends React.Component {
     const loc = this.locationHolder.getLocation();
 
     const c = this;
-    var roles = this.state['roles'];
+    const roles = this.state['roles'];
 
     return <div>
       <ol className="breadcrumb">
@@ -279,23 +372,7 @@ class PermissionsPage extends React.Component {
         <div className="card-header">
           <i className="fa fa-users"></i>&nbsp;Role assignment</div>
         <div className="card-body ">
-          <table
-            className="table-striped table-hover table-bordered"
-            cellPadding="5px"
-          >
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Role</th>
-                <th>Time restrictions</th>
-                <th></th>
-
-              </tr>
-            </thead>
-            <tbody>
-
-            </tbody>
-          </table>
+          <UserRoleTable getUserRoles={() => {return c.state['userRoles']; }} />
         </div>
       </div>
 

@@ -215,7 +215,7 @@ class SensorHealthPage extends React.Component {
         <li className="breadcrumb-item">
           <Link to="status">{loc}</Link>
         </li>
-        <li className="breadcrumb-item active">Acitvity</li>
+        <li className="breadcrumb-item active">Sensor Health</li>
       </ol>
 
 
