@@ -23,6 +23,7 @@ class PhoneNumberList extends React.Component {
     this.onNumberAdd = this.onNumberAdd.bind(this);
     this.onNumberRemove = this.onNumberRemove.bind(this);
     this.numberInput = null;
+    this.labelInput = null;
   }
 
 
@@ -264,14 +265,14 @@ class MonitorSettingsPage extends React.Component {
       evt.preventDefault();
 
       const ref = firebase.database().ref('locations/' + t.locationHolder.getLocation() + "/notificationConfig");
-      ref.child("callRetries").set(t.state['callRetries']);
-      ref.child("heartbeatTimeoutMillis").set(t.state['heartbeatTimeoutMillis']);
+      ref.child("callRetries").set(Number(t.state['callRetries']));
+      ref.child("heartbeatTimeoutMillis").set(Number(t.state['heartbeatTimeoutMillis']));
       ref.child("sendTextsForAlarm").set(t.state['sendTextsForAlarm']);
       ref.child("sendTextsForNotification").set(t.state['sendTextsForNotification']);
       ref.child("sendTextsOnArmDisarm").set(t.state['sendTextsOnArmDisarm']);
 
       const ref2 = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/cloudMonitoringConfig");
-      ref2.child("alarmDelaySeconds").set(t.state["alarmDelaySeconds"]);
+      ref2.child("alarmDelaySeconds").set(Number(t.state["alarmDelaySeconds"]));
     }
 
 
@@ -285,7 +286,7 @@ class MonitorSettingsPage extends React.Component {
     var i = 0;
 
     lst.forEach((e) => {
-      o[(++i)] = e;
+      o[(i++)] = e;
     });
 
     ref.set(o);
@@ -366,7 +367,7 @@ class MonitorSettingsPage extends React.Component {
               <label>Upon seeing activity on sensors, notify users after &nbsp;</label>
              
               <input type="text" value={t.state['alarmDelaySeconds']} maxLength="4" size="4"
-                ref={node => (this.alarmDelaySeconds = node)}
+               
 
                 onChange={
                   (e) => {
@@ -391,7 +392,7 @@ class MonitorSettingsPage extends React.Component {
                   (e) => { 
                     t.setState({ heartbeatTimeoutMillis: (e.target.value * 1000) });
                   }}
-                value={t.state['heartbeatTimeoutMillis'] / 1000} maxLength="4" size="4" ref={node => (this.heartbeatTimeoutMillis = node)} />
+                value={t.state['heartbeatTimeoutMillis'] / 1000} maxLength="4" size="4"  />
               
 
 
@@ -409,7 +410,7 @@ class MonitorSettingsPage extends React.Component {
                   (e) => {
                     t.setState({ sendTextsForAlarm: e.target.checked });
                   }}
-                ref={node => (this.sendTextsForAlarmCheck = node)}
+                
               />
               <label>Send text messages when the alarm is triggered&nbsp;</label>
             </div>
@@ -422,7 +423,7 @@ class MonitorSettingsPage extends React.Component {
                     t.setState({ sendTextsOnArmDisarm: e.target.checked });
                   }}
 
-                ref={node => (this.sendTextsOnArmDisarmCheck = node)}
+                
               />
               <label>Send text messages when system is armed or disarmed&nbsp;</label>
             </div>
@@ -436,7 +437,7 @@ class MonitorSettingsPage extends React.Component {
                     t.setState({ sendTextsForNotification: e.target.checked });
                   }}
 
-                ref={node => (this.sendTextsForNotification = node)}
+
               />
               <label>Send text messages for notifications&nbsp;</label>
 
