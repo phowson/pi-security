@@ -24,7 +24,7 @@ import {
 const NoLocationSideNav = () =>
   <ul className="navbar-nav navbar-sidenav" id="exampleAccordion">
 
-    <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Status">
+    <li className="nav-item active" data-toggle="tooltip" data-placement="right" title="Status">
       <Link className="nav-link" to="/">
         <i className="fa fa-fw fa-home"></i>
         <span className="nav-link-text">Home</span>
@@ -33,96 +33,118 @@ const NoLocationSideNav = () =>
 
   </ul>
 
+const ActiveNavItem = "nav-item active";
+const InactiveNavItem = "nav-item";
+
 const LocationsSideNav = () =>
-  <ul className="navbar-nav navbar-sidenav" id="exampleAccordion">
+  <div>
+    <ul className="navbar-nav navbar-sidenav" id="mainAccordian">
+    <div className="sidebar-heading text-light">
+        Overview
+      </div>
+    <hr className="sidebar-divider my-0"/>
 
-    <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Status">
-      <Link className="nav-link" to={routes.STATUS}>
-        <i className="fa fa-fw fa-eye"></i>
-        <span className="nav-link-text">Status</span>
-      </Link>
-    </li>
-
-    <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Activity">
-      <Link className="nav-link" to={routes.ACTIVITY}>
-        <i className="fa fa-fw fa-exclamation-circle"></i>
-        <span className="nav-link-text">Activity</span>
-      </Link>
-    </li>
-
-    <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Statistics">
-      <Link className="nav-link" to={routes.STATS}>
-        <i className="fa fa-fw fa-area-chart"></i>
-        <span className="nav-link-text">Statistics</span>
-      </Link>
-    </li>
-
-    <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Control">
-      <Link className="nav-link" to={routes.SENSORHEALTH}>
-        <i className="fa fa-fw fa-heartbeat"></i>
-        <span className="nav-link-text">Sensor Health</span>
-      </Link>
-    </li>
-
-    <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Control">
-      <Link className="nav-link" to={routes.DEVICEHEALTH}>
-        <i className="fa fa-fw fa-heartbeat"></i>
-        <span className="nav-link-text">Device Health</span>
-      </Link>
-    </li>
-
-    <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Control">
-      <Link className="nav-link" to={routes.ARMDISARM}>
-        <i className="fa fa-fw fa-power-off"></i>
-        <span className="nav-link-text">Automatic Arm / Disarm</span>
-      </Link>
-    </li>
-
-
-    <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Control">
-      <Link className="nav-link" to={routes.PERMISSIONS}>
-        <i className="fa fa-fw fa-lock"></i>
-        <span className="nav-link-text">Permissions</span>
-      </Link>
-    </li>
-
-    <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Settings">
-      <Link className="nav-link" to={routes.MONITORINGSETTINGS}>
-        <i className="fa fa-fw fa-sliders"></i>
-        <span className="nav-link-text">Monitoring setup</span>
-      </Link>
-    </li>
-
-
-    <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Control">
-      <Link className="nav-link" to={routes.CALLLOG}>
-        <i className="fa fa-fw fa-phone"></i>
-        <span className="nav-link-text">Call log</span>
-      </Link>
-    </li>
-
-    <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Settings">
-      <Link className="nav-link" to={routes.DEVICESETTINGS}>
-        <i className="fa fa-fw fa-cogs"></i>
-        <span className="nav-link-text">Device setup</span>
-      </Link>
-    </li>
-
-    <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Settings">
-      <Link className="nav-link" to={routes.INSTALLERDEVICESETTINGS}>
-        <i className="fa fa-fw fa-cogs"></i>
-        <span className="nav-link-text">Installer's settings</span>
-      </Link>
-    </li>
 
     
 
-  </ul>
+      <li className={ window.location.pathname==routes.STATUS ? ActiveNavItem : InactiveNavItem} data-toggle="tooltip" data-placement="right" title="Status">
+        <Link className="nav-link" to={routes.STATUS}>
+          <i className="fa fa-fw fa-eye"></i>
+          <span className="nav-link-text">Status</span>
+        </Link>
+      </li>
+
+
+
+      <hr className="sidebar-divider my-0"/>
+      <div className="sidebar-heading text-light">
+        Analysis
+      </div>
+
+      
+      <li className={ window.location.pathname==routes.STATS ? ActiveNavItem : InactiveNavItem} data-toggle="tooltip" data-placement="right" title="Statistics">
+        <Link className="nav-link" to={routes.STATS}>
+          <i className="fa fa-fw fa-area-chart"></i>
+          <span className="nav-link-text">Statistics</span>
+        </Link>
+      </li>
+
+      <li className={ window.location.pathname==routes.SENSORHEALTH ? ActiveNavItem : InactiveNavItem}  data-toggle="tooltip" data-placement="right" title="Control">
+        <Link className="nav-link" to={routes.SENSORHEALTH}>
+          <i className="fa fa-fw fa-heartbeat"></i>
+          <span className="nav-link-text">Sensor Health</span>
+        </Link>
+      </li>
+
+      <li className={ window.location.pathname==routes.DEVICEHEALTH ? ActiveNavItem : InactiveNavItem}  data-toggle="tooltip" data-placement="right" title="Control">
+        <Link className="nav-link" to={routes.DEVICEHEALTH}>
+          <i className="fa fa-fw fa-heartbeat"></i>
+          <span className="nav-link-text">Device Health</span>
+        </Link>
+      </li>
+      <div className="sidebar-heading text-light">
+        Setup
+      </div>
+      <li className={ window.location.pathname==routes.ARMDISARM ? ActiveNavItem : InactiveNavItem}  data-toggle="tooltip" data-placement="right" title="Control">
+        <Link className="nav-link" to={routes.ARMDISARM}>
+          <i className="fa fa-fw fa-power-off"></i>
+          <span className="nav-link-text">Automatic Arm / Disarm</span>
+        </Link>
+      </li>
+
+
+      <li className={ window.location.pathname==routes.PERMISSIONS ? ActiveNavItem : InactiveNavItem}  data-toggle="tooltip" data-placement="right" title="Control">
+        <Link className="nav-link" to={routes.PERMISSIONS}>
+          <i className="fa fa-fw fa-lock"></i>
+          <span className="nav-link-text">Permissions</span>
+        </Link>
+      </li>
+
+      <li className={ window.location.pathname==routes.MONITORINGSETTINGS ? ActiveNavItem : InactiveNavItem} data-toggle="tooltip" data-placement="right" title="Settings">
+        <Link className="nav-link" to={routes.MONITORINGSETTINGS}>
+          <i className="fa fa-fw fa-sliders"></i>
+          <span className="nav-link-text">Monitoring Setup</span>
+        </Link>
+      </li>
+
+
+      <li className={ window.location.pathname==routes.DEVICESETTINGS ? ActiveNavItem : InactiveNavItem} data-toggle="tooltip" data-placement="right" title="Settings">
+        <Link className="nav-link" to={routes.DEVICESETTINGS}>
+          <i className="fa fa-fw fa-cogs"></i>
+          <span className="nav-link-text">Device Setup</span>
+        </Link>
+      </li>
+
+      <li className={ window.location.pathname==routes.INSTALLERDEVICESETTINGS ? ActiveNavItem : InactiveNavItem} data-toggle="tooltip" data-placement="right" title="Settings">
+        <Link className="nav-link" to={routes.INSTALLERDEVICESETTINGS}>
+          <i className="fa fa-fw fa-cogs"></i>
+          <span className="nav-link-text">Installer's Settings</span>
+        </Link>
+      </li>
+      <div className="sidebar-heading text-light">
+        Logs
+      </div>
+      <li className={ window.location.pathname==routes.ACTIVITY ? ActiveNavItem : InactiveNavItem} data-toggle="tooltip" data-placement="right" title="Activity">
+          <Link className="nav-link" to={routes.ACTIVITY}>
+            <i className="fa fa-fw fa-exclamation-circle"></i>
+            <span className="nav-link-text">Activity</span>
+          </Link>
+        </li>
+
+
+        <li className={ window.location.pathname==routes.CALLLOG ? ActiveNavItem : InactiveNavItem} data-toggle="tooltip" data-placement="right" title="Control">
+        <Link className="nav-link" to={routes.CALLLOG}>
+          <i className="fa fa-fw fa-phone"></i>
+          <span className="nav-link-text">Call log</span>
+        </Link>
+      </li>
+    </ul>
+  </div>
 
 const HomeSideNav = () =>
   <ul className="navbar-nav navbar-sidenav" id="exampleAccordion">
 
-    <li className="nav-item" data-toggle="tooltip" data-placement="right" title="Status">
+    <li className="nav-item active" data-toggle="tooltip" data-placement="right" title="Status">
       <Link className="nav-link" to="/">
         <i className="fa fa-fw fa-home"></i>
         <span className="nav-link-text">Home</span>
@@ -232,8 +254,8 @@ class BootstrapNavigation extends React.Component {
               <NavItem><SignOutButton /></NavItem>
             </Nav>
             : <Nav className="ml-auto" navbar>
-            
-            
+
+
             </Nav>}
         </AuthUserContext.Consumer>
       </Collapse>

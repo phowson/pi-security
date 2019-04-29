@@ -217,11 +217,7 @@ class SensorHealthPage extends React.Component {
         </li>
         <li className="breadcrumb-item active">Sensor Health</li>
       </ol>
-
-
       {cards}
-
-
     </div>
 
   }
