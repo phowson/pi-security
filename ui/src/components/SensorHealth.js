@@ -32,7 +32,7 @@ class SensorHealthList extends React.Component {
     const devOk = this.sensorHealth.deviceOk;
 
     var l = Array.from(this.sensorHealth.lastActivity.keys());
-    console.log(l);
+    
 
     return (
       <table
@@ -180,7 +180,7 @@ class SensorHealthPage extends React.Component {
     const loc = this.locationHolder.getLocation();
     const t = this;
     const sh = this.state['sensorHealth']
-    console.log(sh);
+    
 
     var cards = [];
 

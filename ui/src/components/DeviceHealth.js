@@ -204,7 +204,7 @@ class DeviceHealthPage extends React.Component {
       humidityPoints.reverse();
       k = k + 1;
       out.push(
-        <div className="card mb-3" key='{k}'>
+        <div className="card mb-3" key={k}>
           <div className="card-header">
             <i className="fa fa-exclamation-circle"></i>&nbsp;Device Health Monitoring for {device} in {location}</div>
           <div className="card-body ">

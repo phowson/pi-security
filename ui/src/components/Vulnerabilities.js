@@ -115,7 +115,7 @@ render() {
 
   });
 
-  recommendedArming.push(<div><hr></hr> <div>Or every day</div></div>);
+  recommendedArming.push(<div key='separator'><hr></hr> <div>Or every day</div></div>);
 
   allDaysPeriods.forEach( (x) => {
 
