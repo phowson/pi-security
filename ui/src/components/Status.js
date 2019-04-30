@@ -344,6 +344,7 @@ class StatusPage extends React.Component {
 
   componentWillUnmount() {
     this._mounted = false;
+    clearInterval(this.interval);
   }
 
 
@@ -481,7 +482,7 @@ class StatusPage extends React.Component {
     });
 
 
-
+    this.interval = setInterval(() => this.setState({ time: Date.now() }), 10000);
   }
 
 

@@ -14,6 +14,8 @@ public class MonitoringConfig {
 	public boolean bellEnabled;
 	public long alarmDelaySeconds;
 
+	public long deBounceDelay;
+
 	@Override
 	public String toString() {
 		return "MonitoringConfig [items=" + items + ", autoTriggerAlarm=" + autoTriggerAlarm + ", bellEnabled="

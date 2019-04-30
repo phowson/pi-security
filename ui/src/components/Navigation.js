@@ -54,6 +54,14 @@ const LocationsSideNav = () =>
         </Link>
       </li>
 
+    
+
+      <li className={ window.location.pathname==routes.PLAN ? ActiveNavItem : InactiveNavItem} data-toggle="tooltip" data-placement="right" title="Status">
+        <Link className="nav-link" to={routes.PLAN}>
+          <i className="fa fa-fw fa-map"></i>
+          <span className="nav-link-text">Plan</span>
+        </Link>
+      </li>
 
 
       <hr className="sidebar-divider my-0"/>
@@ -230,6 +238,7 @@ class BootstrapNavigation extends React.Component {
               <Route exact path={routes.DEVICESETTINGS} component={() => <LocationsSideNav />} />
               <Route exact path={routes.INSTALLERDEVICESETTINGS} component={() => <LocationsSideNav />} />
               <Route exact path={routes.MONITORINGSETTINGS} component={() => <LocationsSideNav />} />
+              <Route exact path={routes.PLAN} component={() => <LocationsSideNav />} />
 
               <Route exact path={routes.LOCATIONS} component={() => <NoLocationSideNav />} />
               <Route exact path={routes.ACCOUNT} component={() => <NoLocationSideNav />} />

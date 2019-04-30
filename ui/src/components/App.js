@@ -4,6 +4,8 @@ import {
   Route,
 } from 'react-router-dom';
 
+
+import PlanPage from './Plan';
 import Navigation from './Navigation';
 import LandingPage from './Landing';
 import SignUpPage from './SignUp';
@@ -85,6 +87,7 @@ class MainApp extends React.Component {
           <div className="content-wrapper">
             <div className="container-fluid">
               <Route exact path={routes.LANDING} component={() => <LandingPage />} />
+              <Route exact path={routes.PLAN} component={() => <PlanPage locationHolder={t}/>} />
               <Route exact path={routes.SIGN_UP} component={() => <SignUpPage />} />
               <Route exact path={routes.SIGN_IN} component={() => <SignInPage locationHolder={t}/>} />
               <Route exact path={routes.PASSWORD_FORGET} component={() => <PasswordForgetPage />} />

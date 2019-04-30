@@ -20,3 +20,4 @@ export const INSTALLERDEVICESETTINGS = '/installerdevicesettings'
 export const SENSORHEALTH = '/sensorhealth'
 
 export const VULNERABILITIES = '/vulnerabilities'
+export const PLAN = '/plan'

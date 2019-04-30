@@ -9,6 +9,8 @@ import org.apache.logging.log4j.Logger;
 import com.pi4j.io.gpio.PinEdge;
 import com.pi4j.io.gpio.PinPullResistance;
 
+import gnu.trove.impl.hash.TIntLongHash;
+import gnu.trove.map.hash.TIntLongHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import net.pisecurity.model.Edges;
 import net.pisecurity.model.Event;
@@ -31,6 +33,8 @@ public class MonitoringService implements IOActivityListener, ExternalEventListe
 	private AlarmBellController alarmBellController;
 	private TIntObjectHashMap<MonitoredPinConfig> pinConfigFastLookup = new TIntObjectHashMap<>();
 
+	private TIntLongHashMap lastPinActivityTime = new TIntLongHashMap();
+	
 	private String deviceId;
 
 	private Heartbeater heartbeater;
@@ -78,21 +82,26 @@ public class MonitoringService implements IOActivityListener, ExternalEventListe
 			if (cfg.edges == Edges.BOTH || (cfg.edges == Edges.RISING && pinEdge == PinEdge.RISING)
 					|| (cfg.edges == Edges.FALLING && pinEdge == PinEdge.FALLING)) {
 
-				this.eventListener
-						.onEvent(new Event(now, pin, cfg.label, EventType.ACTIVITY, "Activity detected on pin " + pin,
-								deviceId, getAlertType(cfg), cfg.enabled && (cfg.raisesAlert || cfg.reportingEnabled)));
-
-				mainExecutor.execute(new Runnable() {
-
-					@Override
-					public void run() {
-						try {
-							doAlarmCheckAndRaise(now, cfg, pin);
-						} catch (Exception ex) {
-							logger.error("Unexpected exception while checking alarm state for " + pin, ex);
+				
+				if (now - lastPinActivityTime.get(pin)>=this.config.deBounceDelay ) {
+				
+					this.eventListener
+							.onEvent(new Event(now, pin, cfg.label, EventType.ACTIVITY, "Activity detected on pin " + pin,
+									deviceId, getAlertType(cfg), cfg.enabled && (cfg.raisesAlert || cfg.reportingEnabled)));
+	
+					mainExecutor.execute(new Runnable() {
+	
+						@Override
+						public void run() {
+							try {
+								doAlarmCheckAndRaise(now, cfg, pin);
+							} catch (Exception ex) {
+								logger.error("Unexpected exception while checking alarm state for " + pin, ex);
+							}
 						}
-					}
-				});
+					});
+				}
+				lastPinActivityTime.put(pin, now);
 			} else {
 				logger.info("Pin " + pin + " activity was not on subscribed edge. Ignoring");
 			}
