@@ -325,7 +325,7 @@ class MonitorSettingsPage extends React.Component {
         <li className="breadcrumb-item">
           <Link to="status">{loc}</Link>
         </li>
-        <li className="breadcrumb-item active">Monitoring Setup</li>
+        <li className="breadcrumb-item active">Cloud Monitoring Setup</li>
       </ol>
 
 

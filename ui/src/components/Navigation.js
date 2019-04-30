@@ -120,8 +120,8 @@ const LocationsSideNav = () =>
 
       <li className={ window.location.pathname==routes.MONITORINGSETTINGS ? ActiveNavItem : InactiveNavItem} data-toggle="tooltip" data-placement="right" title="Settings">
         <Link className="nav-link" to={routes.MONITORINGSETTINGS}>
-          <i className="fa fa-fw fa-sliders"></i>
-          <span className="nav-link-text">Monitoring Setup</span>
+          <i className="fa fa-fw fa-cloud"></i>
+          <span className="nav-link-text">Cloud Monitoring</span>
         </Link>
       </li>
 
