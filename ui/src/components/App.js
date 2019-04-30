@@ -11,6 +11,7 @@ import SignInPage from './SignIn';
 import PasswordForgetPage from './PasswordForget';
 import LocationsPage from './Locations';
 import AccountPage from './Account';
+import VulnerabilitiesPage from './Vulnerabilities'
 
 import InstallerDeviceSettingsPage from './InstallerDeviceSettings';
 import SensorHealthPage from './SensorHealth';
@@ -110,6 +111,8 @@ class MainApp extends React.Component {
 
               <Route exact path={routes.PERMISSIONS} component={() => <PermissionsPage locationHolder = {t}/>} />
               <Route exact path={routes.CALLLOG} component={() => <CallLogPage locationHolder = {t}/>} />
+
+              <Route exact path={routes.VULNERABILITIES} component={() => <VulnerabilitiesPage locationHolder = {t}/>} />
 
 
             </div>

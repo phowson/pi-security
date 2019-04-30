@@ -103,8 +103,9 @@ public class MonitoringService implements IOActivityListener, ExternalEventListe
 
 	private EventAlertType getAlertType(MonitoredPinConfig cfg) {
 
-		if (cfg.enabled && (cfg.raisesAlert || cfg.raiseImmediately)) {
-			if (cfg.type == SensorType.TAMPER || cfg.raiseImmediately) {
+		boolean isTamper = cfg.type == SensorType.TAMPER;
+		if (cfg.enabled && (isTamper || cfg.raisesAlert || cfg.raiseImmediately)) {
+			if (isTamper || cfg.raiseImmediately) {
 				return EventAlertType.IMMEDIATE_ALERT;
 			}
 			return EventAlertType.DELAYED_ALERT;

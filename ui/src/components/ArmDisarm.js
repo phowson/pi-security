@@ -3,21 +3,7 @@ import React from 'react';
 import { Route, Link, withRouter } from 'react-router-dom';
 import firebase from '../firebase/firebase.js';
 import * as helpers from '../helpers/datehelpers.js';
-
-
-class QuietPeriod {
-  constructor() {
-    this.dayOfWeekStart = -1;
-    this.hourOfDayStart = -1;
-
-    this.dayOfWeekEnd = -1;
-    this.hourOfDayEnd = -1;
-    this.durationHours = 0;
-
-
-  }
-
-}
+import * as qpq from '../helpers/QuietPeriodQuery.js'
 
 class ArmDisarmPage extends React.Component {
   constructor(props) {
@@ -47,299 +33,246 @@ class ArmDisarmPage extends React.Component {
     var minDisp = maxEventSeq + this.offset + this.limitTo;
 
     const query2 = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/events").orderByChild("sequenceId").startAt(maxDisp).endAt(minDisp);
-    query2.on("value", function (snapshot) {
-      if (c._mounted) {
-        var perDayOfWeekTable = new Map();
+    new qpq.QuietPeriodQuery().getQuietPeriods(query2,
 
-        for (var i = 0; i < 7; ++i) {
-          var m = new Map();
-          for (var j = 0; j < 24; ++j) {
-            m.set(j, 0);
-          }
+      (periods) => {
 
-          perDayOfWeekTable.set(i, m);
+        if (c._mounted) {
+          c.setState({
+            quietPeriods: periods,
+            minDisp: -minDisp, maxDisp: -maxDisp
+          });
+
+
+
         }
-
-
-        snapshot.forEach(function (childSnapshot) {
-          if ("ACTIVITY" == childSnapshot.child("type").val()) {
-            var d = new Date(childSnapshot.child("timestamp").val());
-            var dl = perDayOfWeekTable.get(d.getDay());
-            var v = dl.get(d.getHours());
-            dl.set(d.getHours(), v + 1);
-          }
-          return false;
-        });
-
-
-        var periods = [];
-
-        var currentQuietPeriod = null;
-        for (var i = 0; i < 7; ++i) {
-          var currentDay = perDayOfWeekTable.get(i);
-          for (var j = 0; j < 24; ++j) {
-            var currentAct = currentDay.get(j);
-            if (currentAct == 0) {
-              if (currentQuietPeriod == null) {
-                currentQuietPeriod = new QuietPeriod();
-                currentQuietPeriod.dayOfWeekStart = i;
-                currentQuietPeriod.hourOfDayStart = j;
-              } else {
-                currentQuietPeriod.dayOfWeekEnd = i;
-                currentQuietPeriod.hourOfDayEnd = j;
-                ++currentQuietPeriod.durationHours;
-              }
-            } else {
-              if (currentQuietPeriod != null) {
-                periods.push(currentQuietPeriod);
-                currentQuietPeriod = null;
-              }
-
-            }
-          }
-        }
-
-        if (currentQuietPeriod != null) {
-          periods.push(currentQuietPeriod);
-        }
-
-
-
-        c.setState({
-          perDayOfWeekTable: perDayOfWeekTable,
-          quietPeriods: periods,
-          minDisp: -minDisp, maxDisp: -maxDisp
-        });
-
-
-
-      }
-    });
-  }
-
-  runQuery() {
-    const c = this;
-    const query3 = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/eventsSequence").on("value",
-      function (snapshot) {
-        c.queryRecentEvents(snapshot.val());
-
-      }
-
-    );
-
-  }
-
-  componentDidMount() {
-    this._mounted = true;
-
-    this.runQuery();
-
+      });
   }
 
 
-  componentWillUnmount() {
-    this._mounted = false;
-  }
+runQuery() {
+  const c = this;
+  const query3 = firebase.database().ref('locations/' + this.locationHolder.getLocation() + "/eventsSequence").on("value",
+    function (snapshot) {
+      c.queryRecentEvents(snapshot.val());
 
-
-  onApplyClicked(evt) {
-
-
-  }
-
-  onAddNewRule(evt) {
-
-  }
-
-
-  generateDaysOfWeek() {
-    const daysOfWeek = [
-      (<option key={++this.listKey} value="0">Sunday</option>),
-      (<option key={++this.listKey} value="1">Monday</option>),
-      (<option key={++this.listKey} value="2">Tuesday</option>),
-      (<option key={++this.listKey} value="3">Wednesday</option>),
-      (<option key={++this.listKey} value="4">Thursday</option>),
-      (<option key={++this.listKey} value="5">Friday</option>),
-      (<option key={++this.listKey} value="6">Saturday</option>),
-    ];
-    return daysOfWeek;
-
-  }
-
-
-  generateHoursList() {
-
-    var hoursList = [
-
-    ];
-    
-    
-    for (var i = 0; i < 24; ++i) {
-
-      hoursList.push(<option key={++this.listKey} value={i}>{helpers.twoDigit(i)}</option>);
     }
 
+  );
 
-    return hoursList;
+}
 
+componentDidMount() {
+  this._mounted = true;
+
+  this.runQuery();
+
+}
+
+
+componentWillUnmount() {
+  this._mounted = false;
+}
+
+
+onApplyClicked(evt) {
+
+
+}
+
+onAddNewRule(evt) {
+
+}
+
+
+generateDaysOfWeek() {
+  const daysOfWeek = [
+    (<option key={++this.listKey} value="0">Sunday</option>),
+    (<option key={++this.listKey} value="1">Monday</option>),
+    (<option key={++this.listKey} value="2">Tuesday</option>),
+    (<option key={++this.listKey} value="3">Wednesday</option>),
+    (<option key={++this.listKey} value="4">Thursday</option>),
+    (<option key={++this.listKey} value="5">Friday</option>),
+    (<option key={++this.listKey} value="6">Saturday</option>),
+  ];
+  return daysOfWeek;
+
+}
+
+
+generateHoursList() {
+
+  var hoursList = [
+
+  ];
+
+
+  for (var i = 0; i < 24; ++i) {
+
+    hoursList.push(<option key={++this.listKey} value={i}>{helpers.twoDigit(i)}</option>);
   }
 
-  generateMinutesList() {
-    var minutesList = [
 
-    ];
-    for (var i = 15; i < 60; i+=15) {
+  return hoursList;
 
-      minutesList.push(<option key={++this.listKey} value={i}>{helpers.twoDigit(i)}</option>);
-    }
+}
 
-    return minutesList;
+generateMinutesList() {
+  var minutesList = [
 
+  ];
+  for (var i = 15; i < 60; i += 15) {
+
+    minutesList.push(<option key={++this.listKey} value={i}>{helpers.twoDigit(i)}</option>);
   }
 
+  return minutesList;
 
-  render() {
+}
 
 
-    var recommendedArming = [];
-    var quietPeriods = this.state['quietPeriods'];
-    var k = 0;
+render() {
 
-    quietPeriods.forEach(x => {
 
-      if (x.durationHours > 2) {
+  var recommendedArming = [];
+  var quietPeriods = this.state['quietPeriods'];
+  var k = 0;
 
-        recommendedArming.push((
-          <li key={k++}>
-            <div key={k++}>
-              Automatically arm between &nbsp;
+  quietPeriods.forEach(x => {
+
+    if (x.durationHours > 2) {
+
+      recommendedArming.push((
+        <li key={k++}>
+          <div key={k++}>
+            Automatically arm between &nbsp;
               <font style={{ "fontWeight": "bold" }}>
-                {helpers.dowNames[x.dayOfWeekStart]} {helpers.twoDigit(x.hourOfDayStart)}:00 hours
+              {helpers.dowNames[x.dayOfWeekStart]} {helpers.twoDigit(x.hourOfDayStart)}:00 hours
               </font>
-              &nbsp;and&nbsp;
+            &nbsp;and&nbsp;
               <font style={{ "fontWeight": "bold" }}>
-                {helpers.dowNames[x.dayOfWeekEnd]} {helpers.twoDigit(x.hourOfDayEnd)}:00 hours
+              {helpers.dowNames[x.dayOfWeekEnd]} {helpers.twoDigit(x.hourOfDayEnd)}:00 hours
               </font>
 
-              , if no activity on any sensors for 30 minutes.
+            , if no activity on any sensors for 30 minutes.
 
             </div>
-          </li>
-
-        ));
-      }
-
-
-
-    });
-
-
-    const t = this;
-    const loc = this.locationHolder.getLocation();
-
-   
-
-
-    return <div>
-      <ol className="breadcrumb">
-        <li className="breadcrumb-item">
-          <Link to="locations">Locations</Link>
         </li>
-        <li className="breadcrumb-item">
-          <Link to="status">{loc}</Link>
-        </li>
-        <li className="breadcrumb-item active">Automatic Arm / Disarm</li>
-      </ol>
 
-      <div className="card mb-3">
-        <div className="card-header">
-          <i className="fa fa-calendar"></i>&nbsp;Automatically recommended smart arming schedule</div>
-        <div className="card-body ">
+      ));
+    }
 
-          <div className="lead">Recommended automatic alarm arming rules from analysis of data at {loc}</div>
-          <ul>
-            {recommendedArming}
-          </ul>
 
-          <div className="btn-group" role="group">
-            <button type="button" className="btn btn-primary" onClick={t.onApplyClicked} > Apply </button>
+
+  });
+
+
+  const t = this;
+  const loc = this.locationHolder.getLocation();
+
+
+
+
+  return <div>
+    <ol className="breadcrumb">
+      <li className="breadcrumb-item">
+        <Link to="locations">Locations</Link>
+      </li>
+      <li className="breadcrumb-item">
+        <Link to="status">{loc}</Link>
+      </li>
+      <li className="breadcrumb-item active">Automatic Arm / Disarm</li>
+    </ol>
+
+    <div className="card mb-3">
+      <div className="card-header">
+        <i className="fa fa-calendar"></i>&nbsp;Automatically recommended smart arming schedule</div>
+      <div className="card-body ">
+
+        <div className="lead">Recommended automatic alarm arming rules from analysis of data at {loc}</div>
+        <ul>
+          {recommendedArming}
+        </ul>
+
+        <div className="btn-group" role="group">
+          <button type="button" className="btn btn-primary" onClick={t.onApplyClicked} > Apply </button>
+
+        </div>
+
+
+      </div>
+    </div>
+
+
+    <div className="card mb-3">
+      <div className="card-header">
+        <i className="fa fa-pencil"></i>&nbsp;Current arming rules</div>
+      <div className="card-body ">
+
+        <p>No rules currently defined</p>
+        <hr />
+
+        <p className="lead">New rule</p>
+        <form onSubmit={this.onAddNewRule}>
+          <div>
+            <label>Automatically arm between&nbsp;</label>
+
+            <select
+              key="dateSelect1">
+              {t.generateDaysOfWeek()}
+            </select>
+            <label>&nbsp;at&nbsp;</label>
+            <select
+              key="hourSelect1">
+              {t.generateHoursList()}
+            </select>
+
+            <label>:00 and&nbsp;</label>
+            <select
+              key="dateSelect2">
+              {t.generateDaysOfWeek()}
+            </select>
+            <label>&nbsp;at&nbsp;</label>
+            <select
+              key="hourSelect2">
+              {t.generateHoursList()}
+            </select>
+            <label>:00 if no activity seen for&nbsp;</label>
+            <select
+              key="minuteSelect">
+              {t.generateMinutesList()}
+            </select>
+
+            <div style={{ width: 5, height: "auto", display: "inline-block" }} />
+            <div className="btn-group" role="group">
+              <button className="btn btn-primary" type="submit" >
+                Add rule
+                </button>
+            </div>
 
           </div>
+        </form>
 
 
-        </div>
+
       </div>
+    </div>
 
 
-      <div className="card mb-3">
-        <div className="card-header">
-          <i className="fa fa-pencil"></i>&nbsp;Current arming rules</div>
-        <div className="card-body ">
-
-          <p>No rules currently defined</p>
-          <hr/>
-
-          <p className="lead">New rule</p>
-          <form onSubmit={this.onAddNewRule}>
-            <div>
-              <label>Automatically arm between&nbsp;</label>
-
-              <select
-                key="dateSelect1">
-                {t.generateDaysOfWeek()}
-              </select>
-              <label>&nbsp;at&nbsp;</label>
-              <select
-                key="hourSelect1">
-                {t.generateHoursList()}
-              </select>
-
-              <label>:00 and&nbsp;</label>
-              <select
-                key="dateSelect2">
-                {t.generateDaysOfWeek()}
-              </select>
-              <label>&nbsp;at&nbsp;</label>
-              <select
-                key="hourSelect2">
-                {t.generateHoursList()}
-              </select>
-              <label>:00 if no activity seen for&nbsp;</label>
-              <select
-                key="minuteSelect">
-                {t.generateMinutesList()}
-              </select>
-
-              <div style={{ width: 5, height: "auto", display: "inline-block" }} />
-              <div className="btn-group" role="group">
-                <button className="btn btn-primary" type="submit" >
-                  Add rule
-                </button>
-              </div>
-
-            </div>
-          </form>
+    <div className="card  mb-3">
+      <div className="card-header">
+        <i className="fa fa-mobile"></i>&nbsp;Mobile phone proximity automatic arm / disarm</div>
+      <div className="card-body ">
 
 
-
-        </div>
       </div>
-
-
-      <div className="card  mb-3">
-        <div className="card-header">
-          <i className="fa fa-mobile"></i>&nbsp;Mobile phone proximity automatic arm / disarm</div>
-        <div className="card-body ">
-
-
-        </div>
-      </div>
+    </div>
 
 
 
-    </div>;
+  </div>;
 
-  }
+}
 
 }
 export default ArmDisarmPage;

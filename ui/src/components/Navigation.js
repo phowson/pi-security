@@ -78,10 +78,20 @@ const LocationsSideNav = () =>
 
       <li className={ window.location.pathname==routes.DEVICEHEALTH ? ActiveNavItem : InactiveNavItem}  data-toggle="tooltip" data-placement="right" title="Control">
         <Link className="nav-link" to={routes.DEVICEHEALTH}>
-          <i className="fa fa-fw fa-heartbeat"></i>
+          <i className="fa fa-fw fa-stethoscope"></i>
           <span className="nav-link-text">Device Health</span>
         </Link>
       </li>
+
+
+      <li className={ window.location.pathname==routes.VULNERABILITIES ? ActiveNavItem : InactiveNavItem}  data-toggle="tooltip" data-placement="right" title="Control">
+        <Link className="nav-link" to={routes.VULNERABILITIES}>
+          <i className="fa fa-fw fa-exclamation-triangle"></i>
+          <span className="nav-link-text">Site Vulnerabilities</span>
+        </Link>
+      </li>
+
+
       <div className="sidebar-heading text-light">
         Setup
       </div>
@@ -214,6 +224,7 @@ class BootstrapNavigation extends React.Component {
               <Route exact path={routes.STATS} component={() => <LocationsSideNav />} />
               <Route exact path={routes.DEVICEHEALTH} component={() => <LocationsSideNav />} />
               <Route exact path={routes.ARMDISARM} component={() => <LocationsSideNav />} />
+              <Route exact path={routes.VULNERABILITIES} component={() => <LocationsSideNav />} />
               <Route exact path={routes.PERMISSIONS} component={() => <LocationsSideNav />} />
               <Route exact path={routes.SENSORHEALTH} component={() => <LocationsSideNav />} />
               <Route exact path={routes.DEVICESETTINGS} component={() => <LocationsSideNav />} />

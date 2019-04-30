@@ -134,21 +134,21 @@ public class LocationMonitoringService implements Runnable {
 		cloudCommandRef = locationRef.child("cloudCommand");
 
 		cloudCommandRef.addValueEventListener(new ValueEventListener() {
-			
+
 			@Override
 			public void onDataChange(DataSnapshot snapshot) {
 				CommandRecord r = snapshot.getValue(CommandRecord.class);
-				if (r!=null) {
+				if (r != null) {
 					if (!r.applied) {
 						onNewCloudServiceCommand(r);
 					}
 				}
 
 			}
-			
+
 			@Override
 			public void onCancelled(DatabaseError error) {
-				
+
 			}
 		});
 
@@ -359,13 +359,15 @@ public class LocationMonitoringService implements Runnable {
 	protected synchronized void sendBatch(boolean force) {
 
 		if (force || (System.currentTimeMillis() - batchStart >= monitoringConfig.alarmDelaySeconds * 1000 && armed)) {
-			logger.info("Sending alert batch : " + events);
+			if (events.size() > 0) {
+				logger.info("Sending alert batch : " + events);
 
-			this.eventPersistenceService.persist(
-					new Event(System.currentTimeMillis(), -1, "Users notified", EventType.USERS_NOTIFIED_OF_ALARM,
-							"Users notified by cloud service", "Cloud Service", EventAlertType.NONE, false));
+				this.eventPersistenceService.persist(
+						new Event(System.currentTimeMillis(), -1, "Users notified", EventType.USERS_NOTIFIED_OF_ALARM,
+								"Users notified by cloud service", "Cloud Service", EventAlertType.NONE, false));
 
-			notificationService.notifyEvents(this.location, notificationConfig, events);
+				notificationService.notifyEvents(this.location, notificationConfig, events);
+			}
 			batchingEvents = false;
 			events.clear();
 		}

@@ -30,7 +30,7 @@ class SimpleSensorConfigList extends React.Component {
   onSavedClicked(evt) {
 
     evt.preventDefault();
-    console.log(this.state['sensorConfig']);
+    
     this.onSaved(this.state['sensorConfig']);
   }
 
@@ -161,7 +161,7 @@ class DeviceSettingsPage extends React.Component {
 
         });
 
-        console.log(monitorConfig);
+
         t.setState({ monitorConfig: monitorConfig });
       }
     });

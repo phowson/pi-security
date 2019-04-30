@@ -18,3 +18,5 @@ export const ARMDISARM = '/armdisarm';
 export const INSTALLERDEVICESETTINGS = '/installerdevicesettings'
 
 export const SENSORHEALTH = '/sensorhealth'
+
+export const VULNERABILITIES = '/vulnerabilities'
