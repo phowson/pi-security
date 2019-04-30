@@ -25,6 +25,45 @@ class SensorConfig {
 }
 
 
+class AuxSettingsForm extends React.Component {
+
+  constructor(params) {
+    super(params);
+    this.state = {
+      auxSettings: params['auxSettings']
+    };
+  }
+
+
+  render() {
+    const t = this;
+
+    const e = this.state['auxSettings'];
+
+    return <div>
+
+      <div>
+        <label>De-bounce delay for sensors :&nbsp;</label>
+        <input type="text" value={e.deBounceDelay} size="5"
+          onChange={
+            (evt) => {
+              e.deBounceDelay = evt.target.value;
+              t.setState({ auxSettings: this.state['auxSettings'] });
+            }} />
+        <label>&nbsp;milliseconds</label>
+      </div>
+      <hr></hr>
+      <div className="btn-group" role="group">
+        <button className="btn btn-primary" type="submit" >
+          Save
+                </button>
+      </div>
+
+    </div>;
+  }
+}
+
+
 class ExpandedSensorConfigList extends React.Component {
   constructor(params) {
     super(params);
@@ -278,9 +317,25 @@ class InstallersDeviceSettingsPage extends React.Component {
       if (t._mounted) {
 
         var monitorConfig = new Map();
+        var auxSettingsMap = new Map();
 
         snapshot.forEach(function (childSnapshot) {
-          var monConfigItems = childSnapshot.child("monitoringConfig").child("items");
+
+          var auxSettings = {};
+          const mc = childSnapshot.child("monitoringConfig");
+          auxSettings.deBounceDelay = mc.child("deBounceDelay").val();
+          if (!auxSettings.deBounceDelay) {
+            auxSettings.deBounceDelay=0;
+          }
+          auxSettings.autoTriggerAlarm = mc.child("autoTriggerAlarm").val();
+          auxSettings.bellEnabled = mc.child("bellEnabled").val();
+          auxSettings.dhtSensorEnabled = mc.child("dhtSensorEnabled").val();
+          auxSettings.dhtSensorLocationName = mc.child("dhtSensorLocationName").val();
+          auxSettings.dhtSensorPin = mc.child("dhtSensorPin").val();
+          auxSettingsMap.set(childSnapshot.key, auxSettings);
+
+
+          var monConfigItems = mc.child("items");
 
           var sensorConfig = [];
           monConfigItems.forEach(function (childSnapshot2) {
@@ -308,7 +363,7 @@ class InstallersDeviceSettingsPage extends React.Component {
 
         });
 
-        t.setState({ monitorConfig: monitorConfig });
+        t.setState({ monitorConfig: monitorConfig, auxSettingsMap: auxSettingsMap });
       }
     });
 
@@ -345,6 +400,9 @@ class InstallersDeviceSettingsPage extends React.Component {
     var i = 0;
 
     t.state['monitorConfig'].forEach((v, k) => {
+
+      const auxSettings = t.state['auxSettingsMap'].get(k);
+
       cards.push(
 
         <div className="card mb-3" key={++i}>
@@ -354,8 +412,21 @@ class InstallersDeviceSettingsPage extends React.Component {
             <ExpandedSensorConfigList sensorConfig={v} onSaved={t.saveState(k)} />
 
 
+
+
+
+
+          </div>
+        </div>);
+      cards.push(
+        <div className="card mb-3" key={++i}>
+          <div className="card-header">
+            <i className="fa fa-eye"></i>&nbsp;Installer level auxillary setup for {k}</div>
+          <div className="card-body ">
+            <AuxSettingsForm auxSettings={auxSettings} />
           </div>
         </div>
+
 
       );
     })
