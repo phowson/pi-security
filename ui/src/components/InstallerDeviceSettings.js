@@ -42,6 +42,39 @@ class AuxSettingsForm extends React.Component {
 
     return <div>
 
+<div>
+        <label>Delay before triggering alarm bell :&nbsp;</label>
+        <input type="text" value={e.alarmDelaySeconds} size="5"
+          onChange={
+            (evt) => {
+              e.alarmDelaySeconds = evt.target.value;
+              t.setState({ auxSettings: this.state['auxSettings'] });
+            }} />
+        <label>&nbsp;seconds</label>
+      </div>
+
+
+    
+      <div>
+        <input type="checkbox" checked={e.bellEnabled} size="5"
+          onChange={
+            (evt) => {
+              e.bellEnabled = evt.target.checked;
+              t.setState({ auxSettings: this.state['auxSettings'] });
+            }} />
+            <label>&nbsp;Alarm bell enabled</label>
+      </div>
+
+      <div>
+        <input type="checkbox" checked={e.autoTriggerAlarm} size="5"
+          onChange={
+            (evt) => {
+              e.autoTriggerAlarm = evt.target.checked;
+              t.setState({ auxSettings: this.state['auxSettings'] });
+            }} />
+            <label>&nbsp;Always auto trigger alarm bell on alarm condition</label>
+      </div>
+
       <div>
         <label>De-bounce delay for sensors :&nbsp;</label>
         <input type="text" value={e.deBounceDelay} size="5"
@@ -52,6 +85,9 @@ class AuxSettingsForm extends React.Component {
             }} />
         <label>&nbsp;milliseconds</label>
       </div>
+
+
+
       <hr></hr>
       <div className="btn-group" role="group">
         <button className="btn btn-primary" type="submit" >
@@ -327,6 +363,8 @@ class InstallersDeviceSettingsPage extends React.Component {
           if (!auxSettings.deBounceDelay) {
             auxSettings.deBounceDelay=0;
           }
+
+          auxSettings.alarmDelaySeconds = mc.child("alarmDelaySeconds").val();
           auxSettings.autoTriggerAlarm = mc.child("autoTriggerAlarm").val();
           auxSettings.bellEnabled = mc.child("bellEnabled").val();
           auxSettings.dhtSensorEnabled = mc.child("dhtSensorEnabled").val();
