@@ -11,7 +11,7 @@ class ArmDisarmPage extends React.Component {
 
     this._mounted = false;
     this.locationHolder = props['locationHolder'];
-    this.limitTo = 100;
+    this.limitTo = 1000;
     this.offset = 0;
     this.knownMax = 0;
     this.listKey = 0;

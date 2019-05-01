@@ -52,7 +52,6 @@ public class TwilioSMS {
 
 		String s = this.url.replace("{account}", accountDetails.account);
 		URI uri = new URI(s);
-		HttpClientContext context = HttpClientContext.create();
 		CredentialsProvider credsProvider = new BasicCredentialsProvider();
 		credsProvider.setCredentials(new AuthScope(uri.getHost(), uri.getPort()),
 				new UsernamePasswordCredentials(this.accountDetails.account, this.accountDetails.apiKey));
@@ -61,15 +60,16 @@ public class TwilioSMS {
 		AuthCache authCache = new BasicAuthCache();
 		// Generate BASIC scheme object and add it to the local auth cache
 		BasicScheme basicAuth = new BasicScheme();
-		HttpHost targetHost = new HttpHost(uri.getHost(), uri.getPort(), "https");
-		authCache.put(targetHost, basicAuth);
-		context.setCredentialsProvider(credsProvider);
-		context.setAuthCache(authCache);
-
-		Gson gson = this.builder.create();
 		List<TwilioSMSResponse> responses = new ArrayList<>();
+		Gson gson = this.builder.create();
 
 		for (String target : targetNumbers) {
+			HttpClientContext context = HttpClientContext.create();
+			HttpHost targetHost = new HttpHost(uri.getHost(), uri.getPort(), "https");
+			authCache.put(targetHost, basicAuth);
+			context.setCredentialsProvider(credsProvider);
+			context.setAuthCache(authCache);
+			
 			HttpPost request = new HttpPost(uri);
 
 			MultipartEntityBuilder builder = MultipartEntityBuilder.create();

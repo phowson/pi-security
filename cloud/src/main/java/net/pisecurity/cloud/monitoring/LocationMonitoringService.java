@@ -276,7 +276,7 @@ public class LocationMonitoringService implements Runnable {
 			logger.info("Saw event : " + event);
 			switch (event.type) {
 			case ALARMTRIGGERED_MANUAL:
-			case ALARMTRIGGERED_AUTO:
+//			case ALARMTRIGGERED_AUTO:
 				events.add(event);
 				startBatch();
 
