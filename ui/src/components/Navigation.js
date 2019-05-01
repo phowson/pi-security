@@ -39,13 +39,10 @@ const InactiveNavItem = "nav-item";
 const LocationsSideNav = () =>
   <div>
     <ul className="navbar-nav navbar-sidenav" id="mainAccordian">
-    <div className="sidebar-heading text-light">
+    <div className="sidebar-heading text-light small">
         Overview
       </div>
-    <hr className="sidebar-divider my-0"/>
 
-
-    
 
       <li className={ window.location.pathname==routes.STATUS ? ActiveNavItem : InactiveNavItem} data-toggle="tooltip" data-placement="right" title="Status">
         <Link className="nav-link" to={routes.STATUS}>
@@ -65,7 +62,7 @@ const LocationsSideNav = () =>
 
 
       <hr className="sidebar-divider my-0"/>
-      <div className="sidebar-heading text-light">
+      <div className="sidebar-heading text-light small">
         Analysis
       </div>
 
@@ -100,7 +97,7 @@ const LocationsSideNav = () =>
       </li>
 
 
-      <div className="sidebar-heading text-light">
+      <div className="sidebar-heading text-light small">
         Setup
       </div>
       <li className={ window.location.pathname==routes.ARMDISARM ? ActiveNavItem : InactiveNavItem}  data-toggle="tooltip" data-placement="right" title="Control">
@@ -139,7 +136,7 @@ const LocationsSideNav = () =>
           <span className="nav-link-text">Installer's Settings</span>
         </Link>
       </li>
-      <div className="sidebar-heading text-light">
+      <div className="sidebar-heading text-light small">
         Logs
       </div>
       <li className={ window.location.pathname==routes.ACTIVITY ? ActiveNavItem : InactiveNavItem} data-toggle="tooltip" data-placement="right" title="Activity">
